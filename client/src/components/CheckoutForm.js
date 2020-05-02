@@ -3,6 +3,8 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import "./CheckoutForm.css";
 import api from "../api";
 
+const productDetails = {"currency":"USD","amount":9900};
+
 export default function CheckoutForm() {
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState("");
@@ -17,10 +19,12 @@ export default function CheckoutForm() {
   useEffect(() => {
     // Step 1: Fetch product details such as amount and currency from
     // API to make sure it can't be tampered with in the client.
-    api.getProductDetails().then(productDetails => {
-      setAmount(productDetails.amount / 100);
-      setCurrency(productDetails.currency);
-    });
+    setAmount(productDetails.amount / 100);
+    setCurrency(productDetails.currency);
+    // api.getProductDetails().then(productDetails => {
+    //   setAmount(productDetails.amount / 100);
+    //   setCurrency(productDetails.currency);
+    // });
 
     // Step 2: Create PaymentIntent over Stripe API
     api
@@ -102,7 +106,7 @@ export default function CheckoutForm() {
             minimumFractionDigits: 2
           })}{" "}
         </h1>
-        <h4>Pre-order the Pasha package</h4>
+        <h4>Ethiopia COVID-19 Donation Form</h4>
 
         <div className="sr-combo-inputs">
           <div className="sr-combo-inputs-row">

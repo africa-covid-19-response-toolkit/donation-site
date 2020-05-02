@@ -10,7 +10,7 @@
   --accent-color: #0066f0;
   --body-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   --radius: 6px;
-  --logo-image: url("https://storage.googleapis.com/stripe-sample-images/KAVHOLM.svg");
+  --logo-image: url("https://www.ethiopiatrustfund.org/wp-content/uploads/2020/04/ECRT_Horizontal_Logo.png");
   --form-width: 343px;
 }
 
@@ -84,8 +84,8 @@ h4 {
   padding-left: 48px;
 }
 .sr-header__logo {
-  background-image: var(--logo-image);
-  height: 24px;
+  background-image: url("https://www.ethiopiatrustfund.org/wp-content/uploads/2020/04/ECRT_Horizontal_Logo.png");
+  height: 85px;
   background-size: contain;
   background-repeat: no-repeat;
   width: 100%;
