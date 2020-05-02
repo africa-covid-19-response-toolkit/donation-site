@@ -3,11 +3,19 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import "./CheckoutForm.css";
 import api from "../api";
 
-const productDetails = {"currency":"USD","amount":9900};
+const CURRENCIES = [
+  { code: 'USD', symbol: '$' },
+  { code: 'EUR', symbol: '€' }
+];
+const DEFAULT_CURRENCY = "USD";
+
+const AMOUNTS = [30,100,365,1000,5000,10000];
+const DEFAULT_AMOUNT = 100;
 
 export default function CheckoutForm() {
-  const [amount, setAmount] = useState(0);
-  const [currency, setCurrency] = useState("");
+  const [amount, setAmount] = useState(DEFAULT_AMOUNT);
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
+  const [showCustomAmount, setShowCustomAmount] = useState(false)
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
@@ -19,8 +27,8 @@ export default function CheckoutForm() {
   useEffect(() => {
     // Step 1: Fetch product details such as amount and currency from
     // API to make sure it can't be tampered with in the client.
-    setAmount(productDetails.amount / 100);
-    setCurrency(productDetails.currency);
+    // setCurrency(DEFAULT_CURRENCY);
+    // setAmount(DEFAULT_AMOUNT);
     // api.getProductDetails().then(productDetails => {
     //   setAmount(productDetails.amount / 100);
     //   setCurrency(productDetails.currency);
@@ -29,7 +37,9 @@ export default function CheckoutForm() {
     // Step 2: Create PaymentIntent over Stripe API
     api
       .createPaymentIntent({
-        payment_method_types: ["card"]
+        payment_method_types: ["card"],
+        currency,
+        amount: amount * 100
       })
       .then(clientSecret => {
         setClientSecret(clientSecret);
@@ -37,7 +47,7 @@ export default function CheckoutForm() {
       .catch(err => {
         setError(err.message);
       });
-  }, []);
+  }, [currency, amount]);
 
   const handleSubmit = async ev => {
     ev.preventDefault();
@@ -79,7 +89,128 @@ export default function CheckoutForm() {
     );
   };
 
-  const renderForm = () => {
+  const renderFormField = (label, type, id, placeholder) => {
+    // <label for={id}>{label}</label>
+    return (
+      <div class="form-group">
+        <input
+          type={type}
+          class="form-control"
+          id={id}
+          placeholder={label}
+          autoComplete={id}
+        />
+      </div>
+    )
+  }
+
+  const renderDropdown = (label, display, choices) => {
+    return (
+      <div className="mt-0 mb-3">
+        <label className="m-0">Select Amount</label>
+        <div className="dropdown mt-0">
+          <button className="btn btn-primary dropdown-toggle mt-0" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {display}
+          </button>
+          <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {choices.map(choice => (
+              <a className="dropdown-item" onClick={choice.onClick}>{choice.display}</a>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  };
+
+  const currencyHandler = currencyCode => () => {
+    setCurrency(currencyCode)
+  }
+
+  const renderCurrencySelector = () => {
+    const currentCurrency = CURRENCIES.find(c => c.code === currency);
+    const display = `${currentCurrency.symbol} ${currentCurrency.code}`;
+    const choices = CURRENCIES.map(c => {
+      const display = `${c.code} ${c.symbol}`;
+      const onClick = currencyHandler(c.code)
+      return { display, onClick };
+    });
+
+    return renderDropdown('Select Currency', display, choices);
+  }
+
+  const amountHandler = amountChoice => () => {
+    setAmount(amountChoice);
+    setShowCustomAmount(false);
+  }
+
+  const otherAmountHandler = () => {
+    setShowCustomAmount(true)
+  }
+
+  const handleCustomAmount = (e) => {
+    const customAmount = e.target.value;
+    setAmount(customAmount);
+  }
+
+  const renderCustomAmountField = () => {
+    return (
+      <div class="form-group">
+        <input
+          type="text"
+          class="form-control"
+          id="custom-amount"
+          placeholder="Custom amount"
+          onChange={handleCustomAmount}
+        />
+      </div>
+    )
+  }
+
+  const renderAmountSelector = () => {
+    const currentCurrency = CURRENCIES.find(c => c.code === currency);
+    const display = showCustomAmount ? 'Custom Amount' : `${currentCurrency.symbol} ${amount}`;
+    const choices = AMOUNTS.map(a => {
+      const display = `${currentCurrency.symbol} ${a}`;
+      const onClick = amountHandler(a)
+      return { display, onClick };
+    });
+    choices.push({ display: 'Custom amount', onClick: otherAmountHandler })
+
+    return (
+      <div>
+        {renderDropdown('Select Amount', display, choices)}
+        {showCustomAmount && (
+          renderCustomAmountField()
+        )}
+      </div>
+    )
+  }
+
+  const renderDonationAmount = () => {
+    return (
+      <div>
+        <h1>
+          {currency.toLocaleUpperCase()}{" "}
+          {amount.toLocaleString(navigator.language, {
+            minimumFractionDigits: 2
+          })}{" "}
+        </h1>
+      </div>
+    );
+  }
+
+  const renderPersonalInformationForm = () => {
+    return (
+      <div>
+        <h5>Personal Information</h5>
+        {renderFormField('Name', 'text', 'name')}
+        {renderFormField('Email', 'email', 'email')}
+        {renderFormField('Comments', 'text', 'comments')}
+      </div>
+    )
+  }
+
+  const renderCreditCardForm = () => {
     const options = {
       style: {
         base: {
@@ -99,43 +230,38 @@ export default function CheckoutForm() {
     };
 
     return (
+      <div className="mb-4">
+        <h5>Credit Card Information</h5>
+        <CardElement
+          className="sr-input sr-card-element"
+          options={options}
+        />
+      </div>
+    );
+  }
+
+  const renderForm = () => {
+    // className="sr-combo-inputs"
+    return (
       <form onSubmit={handleSubmit}>
-        <h1>
-          {currency.toLocaleUpperCase()}{" "}
-          {amount.toLocaleString(navigator.language, {
-            minimumFractionDigits: 2
-          })}{" "}
-        </h1>
-        <h4>Ethiopia COVID-19 Donation Form</h4>
+        <h3>Donation Form</h3>
 
-        <div className="sr-combo-inputs">
-          <div className="sr-combo-inputs-row">
-            <input
-              type="text"
-              id="name"
-              name="name"
-              placeholder="Name"
-              autoComplete="cardholder"
-              className="sr-input"
-            />
-          </div>
+        <div>
+          {renderCurrencySelector()}
+          {renderAmountSelector()}
+          {renderPersonalInformationForm()}
+          {renderCreditCardForm()}
+          {renderDonationAmount()}
 
-          <div className="sr-combo-inputs-row">
-            <CardElement
-              className="sr-input sr-card-element"
-              options={options}
-            />
-          </div>
+          {error && <div className="message sr-field-error">{error}</div>}
+
+          <button
+            className="btn btn-success"
+            disabled={processing || !clientSecret || !stripe}
+          >
+            {processing ? "Processing…" : "Pay"}
+          </button>
         </div>
-
-        {error && <div className="message sr-field-error">{error}</div>}
-
-        <button
-          className="btn"
-          disabled={processing || !clientSecret || !stripe}
-        >
-          {processing ? "Processing…" : "Pay"}
-        </button>
       </form>
     );
   };

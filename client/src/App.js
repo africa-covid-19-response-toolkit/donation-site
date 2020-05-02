@@ -12,7 +12,7 @@ const stripePromise = api.getPublicStripeKey().then(key => loadStripe(key));
 
 export default function App() {
   return (
-    <div className="App">
+    <div className=".container">
       <div className="sr-root">
         <div className="sr-main">
           <header className="sr-header">

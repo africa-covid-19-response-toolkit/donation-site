@@ -35,12 +35,12 @@ app.get("/product-details", (req, res) => {
 
 app.post("/create-payment-intent", async (req, res) => {
   const body = req.body;
-  const productDetails = getProductDetails();
+  // const { currency, amount } = body;
+
+  // const productDetails = getProductDetails();
 
   const options = {
-    ...body,
-    amount: productDetails.amount,
-    currency: productDetails.currency
+    ...body
   };
 
   try {
