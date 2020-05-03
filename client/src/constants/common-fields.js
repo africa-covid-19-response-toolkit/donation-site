@@ -27,19 +27,11 @@ const COMMON_FIELDS = (lang, handleFieldChange, langCode) => {
   return [
     {
       type: "text",
-      label: lang.t("firstName"),
-      property: "firstName",
+      label: lang.t("name"),
+      property: "name",
       focus: false,
-      onChange: handleFieldChange("firstName"),
+      onChange: handleFieldChange("name"),
       onValidate: nameValidator.validate,
-      validationErrorMsg: lang.t(nameValidator.validationErrorMsg),
-    },
-    {
-      type: "text",
-      label: lang.t("lastName"),
-      property: "lastName",
-      focus: false,
-      onChange: handleFieldChange("lastName"),
       validationErrorMsg: lang.t(nameValidator.validationErrorMsg),
     },
     {
@@ -77,7 +69,9 @@ const COMMON_FIELDS = (lang, handleFieldChange, langCode) => {
       defaultvalue: DEFAULT_AMOUNT,
       onChange: handleFieldChange("donationAmount"),
       choices: AMOUNTS.map((c) => ({
-        label: c,
+        label: c.toLocaleString(navigator.language, {
+          minimumFractionDigits: 2,
+        }),
         value: c,
       })),
     },

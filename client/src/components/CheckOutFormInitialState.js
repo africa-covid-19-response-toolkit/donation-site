@@ -1,8 +1,7 @@
 const DEFAULT_CURRENCY = "USD";
 const DEFAULT_AMOUNT = 100;
 const CheckoutFormInitialState = {
-  firstName: "",
-  lastName: "",
+  name: "",
   companyName: "",
   email: "",
   currency: DEFAULT_CURRENCY,
