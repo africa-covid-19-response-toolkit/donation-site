@@ -28,7 +28,7 @@ export default {
     numberOnly: "This field is for number only",
     email: "Email address must be valid",
     lengthAtMost100: "100 or few characters please",
+    amountDec2Min10: "Minimum donation is 10 / Max decimal is 2 ",
   },
   comment: "Comment",
-  numberMin10: "Minimum donation is 10",
 };

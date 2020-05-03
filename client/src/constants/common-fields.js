@@ -1,7 +1,7 @@
 import {
   nameValidator,
   emailValidator,
-  numberValidator,
+  amountValidator,
 } from "../components/forms/validations/Validations";
 
 const CURRENCIES = [
@@ -88,9 +88,8 @@ const COMMON_FIELDS = (lang, handleFieldChange, langCode) => {
       label: lang.t("customAmount"),
       property: "customAmount",
       focus: false,
-      step: ".01",
-      onValidate: numberValidator.validate,
-      validationErrorMsg: lang.t(numberValidator.validationErrorMsg),
+      onValidate: amountValidator.validate,
+      validationErrorMsg: lang.t(amountValidator.validationErrorMsg),
       onChange: handleFieldChange("customAmount"),
     },
     {

@@ -23,7 +23,6 @@ const StatefulTextField = ({ field, clear }) => {
     validationErrorMsg,
     focus,
     type,
-    defaultvalue,
   } = field;
   const [value, setValue] = useState(field.value || "");
   const [isValid, setIsValid] = useState(true);
@@ -107,7 +106,6 @@ const StatefulMultilineTextField = ({ field, clear }) => {
     onValidate,
     validationErrorMsg,
     focus,
-    step,
   } = field;
   const [value, setValue] = useState(field.value || "");
   const [isValid, setIsValid] = useState(true);
@@ -128,7 +126,6 @@ const StatefulMultilineTextField = ({ field, clear }) => {
     firstUpdate.current = true;
     setValue(field.value || "");
   }, [clear]);
-  const inputProps = step ? { step: step } : {};
   const handleChange = (event) => {
     const newValue = event.target.value;
     setValue(newValue);
