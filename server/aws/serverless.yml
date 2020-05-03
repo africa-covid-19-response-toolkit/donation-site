@@ -23,8 +23,10 @@ provider:
   environment:
     DOMAIN_NAME: value1
     STRIPE_SECRET_KEY: ${ssm:/stripe_gateway~true}
+    STRIPE_PUBLISHABLE_KEY: test
     AUTH_ISS: test
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -39,7 +41,7 @@ provider:
   
 functions:
   stripe:
-    handler: handler.stripe
+    handler: handler.handler
     events:
       - http:
           path: /
@@ -48,16 +50,24 @@ functions:
           path: /public-key
           method: get
       - http:
-          path: /create-payment-intent
-          method: post
-      - http:
-          path: /webhook
+          path: /product-details
           method: get
+      - http:
+          path: /create-payment-intent
+          method: get
+      - http:
+          path: /main/{type}
+          method: get
+          request:
+            parameters:
+              paths:
+                type: true
+          
   store:
-    handler: handler.stripe
+    handler: handler.handler
     events:
       - http:
-          path: save
+          path: /save
           method: post
           cors: true
 
