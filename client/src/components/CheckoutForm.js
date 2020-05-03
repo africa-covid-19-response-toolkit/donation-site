@@ -46,7 +46,10 @@ export default function CheckoutForm() {
     // });
 
     // Step 2: Create PaymentIntent over Stripe API
-    const amount = formValues.donationAmount === "Other" ? formValues.customAmount : formValues.donationAmount;
+    const amount =
+      formValues.donationAmount === "Other"
+        ? formValues.customAmount
+        : formValues.donationAmount;
 
     api
       .createPaymentIntent({
@@ -55,7 +58,7 @@ export default function CheckoutForm() {
         amount: amount * 100,
       })
       .then((clientSecret) => {
-        console.log('clientSecret', clientSecret)
+        console.log("clientSecret", clientSecret);
         setClientSecret(clientSecret);
       })
       .catch((err) => {
@@ -66,7 +69,7 @@ export default function CheckoutForm() {
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     setProcessing(true);
-    console.log('formValues', formValues);
+    console.log("formValues", formValues);
 
     // Step 3: Use clientSecret from PaymentIntent and the CardElement
     // to confirm payment with stripe.confirmCardPayment()
@@ -74,7 +77,7 @@ export default function CheckoutForm() {
       payment_method: {
         card: elements.getElement(CardElement),
         billing_details: {
-          name: formValues.name
+          name: formValues.name,
         },
       },
     });
@@ -115,11 +118,14 @@ export default function CheckoutForm() {
       <Grid item xs={12} md={6}>
         {renderFormField(field, clear)}
       </Grid>
-    )
+    );
   };
 
   const renderDonationAmount = () => {
-    const amount = formValues.donationAmount === "Other" ? formValues.customAmount : formValues.donationAmount;
+    const amount =
+      formValues.donationAmount === "Other"
+        ? formValues.customAmount
+        : formValues.donationAmount;
 
     return (
       <Box fontWeight={700}>
@@ -176,8 +182,8 @@ export default function CheckoutForm() {
       <Box mb={bottomMargin}>
         <Typography variant={variant}>{label}</Typography>
       </Box>
-    )
-  }
+    );
+  };
 
   const renderForm = () => {
     // className="sr-combo-inputs"
@@ -195,9 +201,7 @@ export default function CheckoutForm() {
         </Box>
 
         {renderSectionHeader("Personal Information", "h4", 2)}
-        <Box mb={2}>
-          {renderPersonalInformationForm()}
-        </Box>
+        <Box mb={2}>{renderPersonalInformationForm()}</Box>
 
         {renderSectionHeader("Payment Information", "h4", 2)}
         <Box mb={2}>
@@ -206,12 +210,7 @@ export default function CheckoutForm() {
           {error && <div className="message sr-field-error">{error}</div>}
         </Box>
         <Box mb={2} textAlign="right">
-          <Button
-
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-          >
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
             {" "}
             {processing ? "Processing…" : "Pay"}
           </Button>

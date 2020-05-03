@@ -43,7 +43,13 @@ const StatefulTextField = ({ field, clear }) => {
     firstUpdate.current = true;
     setValue(field.value || "");
   }, [clear]);
-
+  const formatAmount = (amount) => {
+    if (Number(amount)) {
+      return (field.value = new Intl.NumberFormat("en", {
+        useGrouping: true,
+      }).format(amount));
+    }
+  };
   const handleChange = (event) => {
     const newValue = event.target.value;
     setValue(newValue);
@@ -80,7 +86,7 @@ const StatefulTextField = ({ field, clear }) => {
       <InputLabel shrink>{label}</InputLabel>
       <TextField
         id={`${property}-outlined`}
-        value={value}
+        value={formatAmount(value)}
         type={type}
         onChange={handleChange}
         onBlur={handleValidation}
@@ -274,8 +280,6 @@ export const renderFormField = (field, clear, md) => {
       return renderTextField(field, clear);
     case "multiline":
       return renderMultilineTextField(field, clear);
-    case "number":
-      return renderTextField(field, clear);
     case "switch":
       return renderSwitch(field, clear);
     case "select":

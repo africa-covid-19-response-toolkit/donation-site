@@ -84,7 +84,7 @@ const COMMON_FIELDS = (lang, handleFieldChange, langCode) => {
       offLabel: lang.t("no"),
     },
     {
-      type: "number",
+      type: "text",
       label: lang.t("customAmount"),
       property: "customAmount",
       focus: false,
