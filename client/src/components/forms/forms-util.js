@@ -77,24 +77,22 @@ const StatefulTextField = ({ field, clear }) => {
   }
 
   return (
-    <Grid item xs={12} md={6}>
-      <Box>
-        <InputLabel shrink>{label}</InputLabel>
-        <TextField
-          id={`${property}-outlined`}
-          value={value}
-          type={type}
-          onChange={handleChange}
-          onBlur={handleValidation}
-          disabled={!!disabled}
-          fullWidth={true}
-          autoComplete="false"
-          size="small"
-          variant="outlined"
-          {...props}
-        />
-      </Box>
-    </Grid>
+    <Box>
+      <InputLabel shrink>{label}</InputLabel>
+      <TextField
+        id={`${property}-outlined`}
+        value={value}
+        type={type}
+        onChange={handleChange}
+        onBlur={handleValidation}
+        disabled={!!disabled}
+        fullWidth={true}
+        autoComplete="false"
+        size="small"
+        variant="outlined"
+        {...props}
+      />
+    </Box>
   );
 };
 export const renderTextField = (field, clear) => {
@@ -162,23 +160,21 @@ const StatefulMultilineTextField = ({ field, clear }) => {
   }
 
   return (
-    <Grid item xs={12} md={10}>
-      <Box>
-        <InputLabel shrink>{label}</InputLabel>
-        <TextField
-          id={`${property}-outlined`}
-          value={value}
-          multiline
-          rows={4}
-          onChange={handleChange}
-          fullWidth={true}
-          autoComplete="false"
-          size="small"
-          variant="outlined"
-          {...props}
-        />
-      </Box>
-    </Grid>
+    <Box>
+      <InputLabel shrink>{label}</InputLabel>
+      <TextField
+        id={`${property}-outlined`}
+        value={value}
+        multiline
+        rows={4}
+        onChange={handleChange}
+        fullWidth={true}
+        autoComplete="false"
+        size="small"
+        variant="outlined"
+        {...props}
+      />
+    </Box>
   );
 };
 export const renderMultilineTextField = (field, clear) => {
@@ -231,7 +227,6 @@ const StatefulSelectField = ({ field }) => {
   const { label, property, onChange, disabled, choices } = field;
 
   const [value, setValue] = useState(field.defaultvalue || "");
-  console.log(field);
 
   const handleChange = (event) => {
     const newValue = event.target.value;
@@ -243,34 +238,32 @@ const StatefulSelectField = ({ field }) => {
   };
 
   return (
-    <Grid item xs={12} md={2}>
-      <Box>
-        <InputLabel shrink>{label}</InputLabel>
-        <FormControl
-          style={{
-            width: "100%",
-          }}
-          variant="outlined"
-          size="small"
+    <Box>
+      <InputLabel shrink>{label}</InputLabel>
+      <FormControl
+        style={{
+          width: "100%",
+        }}
+        variant="outlined"
+        size="small"
+      >
+        <Select
+          labelId={`label-${property}`}
+          id={`select-${property}`}
+          value={value}
+          defaultValue={value}
+          disabled={!!disabled}
+          onChange={handleChange}
+          className="btn btn-primary"
         >
-          <Select
-            labelId={`label-${property}`}
-            id={`select-${property}`}
-            value={value}
-            defaultValue={value}
-            disabled={!!disabled}
-            onChange={handleChange}
-            className="btn btn-primary"
-          >
-            {choices.map((c, index) => (
-              <MenuItem key={index} value={c.value} className="dropdown-item">
-                {c.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    </Grid>
+          {choices.map((c, index) => (
+            <MenuItem key={index} value={c.value} className="dropdown-item">
+              {c.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
   );
 };
 

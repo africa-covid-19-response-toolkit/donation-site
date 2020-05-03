@@ -8,43 +8,31 @@ import api from "../api";
 import { COMMON_FIELDS } from "../constants/common-fields";
 import CheckoutFormInitialState from "./CheckOutFormInitialState";
 import languageStore from "../helpers/lang/language-store";
-console.log(languageStore);
-
-// const DEFAULT_CURRENCY = "USD";
-
-// const DEFAULT_AMOUNT = 100;
 
 export default function CheckoutForm() {
-  const [amount, setAmount] = useState(CheckoutFormInitialState.donationAmount);
-  const [currency, setCurrency] = useState(CheckoutFormInitialState.currency);
-  //const [showCustomAmount, setShowCustomAmount] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
   const [succeeded, setSucceeded] = useState(false);
   const [processing, setProcessing] = useState(false);
   const stripe = useStripe();
-  console.log(stripe);
   const elements = useElements();
   const [formValues, setFormValues] = useState({
     ...CheckoutFormInitialState,
   });
+  const [clear, setClear] = useState(0);
+
+  // TODO: This should move to a tope level
+  const langCode = languageStore.langCode;
+  const lang = languageStore.lang;
+
   const handleFieldChange = (field) => (value) => {
-    if (field === "currency") {
-      setCurrency(value);
-    }
-    if (field === "donationAmount") {
-      setAmount(value);
-    }
     setFormValues({
       ...formValues,
       [field]: value,
     });
   };
-  const [clear, setClear] = useState(0);
-  // TODO: This should move to a tope level
-  const langCode = languageStore.langCode;
-  const lang = languageStore.lang;
+
   const fields = COMMON_FIELDS(lang, handleFieldChange, langCode);
 
   useEffect(() => {
@@ -58,24 +46,27 @@ export default function CheckoutForm() {
     // });
 
     // Step 2: Create PaymentIntent over Stripe API
+    const amount = formValues.donationAmount === "Other" ? formValues.customAmount : formValues.donationAmount;
+
     api
       .createPaymentIntent({
         payment_method_types: ["card"],
-        currency,
+        currency: formValues.currency,
         amount: amount * 100,
       })
       .then((clientSecret) => {
+        console.log('clientSecret', clientSecret)
         setClientSecret(clientSecret);
       })
       .catch((err) => {
         setError(err.message);
       });
-  }, [currency, amount]);
+  }, [formValues]);
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     setProcessing(true);
-    console.log(formValues);
+    console.log('formValues', formValues);
 
     // Step 3: Use clientSecret from PaymentIntent and the CardElement
     // to confirm payment with stripe.confirmCardPayment()
@@ -83,7 +74,7 @@ export default function CheckoutForm() {
       payment_method: {
         card: elements.getElement(CardElement),
         billing_details: {
-          name: ev.target.name.value,
+          name: formValues.name
         },
       },
     });
@@ -114,117 +105,43 @@ export default function CheckoutForm() {
       </div>
     );
   };
-  const renderFields = (property) => {
-    console.log(property);
+  const renderField = (property) => {
     const field = fields.find((f) => f.property === property);
-    console.log(field);
     if (!field) {
       return null;
     }
 
-    return renderFormField(field, clear);
+    return (
+      <Grid item xs={12} md={6}>
+        {renderFormField(field, clear)}
+      </Grid>
+    )
   };
 
-  // const renderDropdown = (label, display, choices) => {
-  //   return (
-  //     <div className="mt-0 mb-3">
-  //       <label className="m-0">Select Amount</label>
-  //       <div className="dropdown mt-0">
-  //         <button
-  //           className="btn btn-primary dropdown-toggle mt-0"
-  //           type="button"
-  //           id="dropdownMenuButton"
-  //           data-toggle="dropdown"
-  //           aria-haspopup="true"
-  //           aria-expanded="false"
-  //         >
-  //           {display}
-  //         </button>
-  //         <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-  //           {choices.map((choice) => (
-  //             <a className="dropdown-item" onClick={choice.onClick}>
-  //               {choice.display}
-  //             </a>
-  //           ))}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
-  // const currencyHandler = (currencyCode) => () => {
-  //   setCurrency(currencyCode);
-  // };
-
-  // const renderCurrencySelector = () => {
-  //   const currentCurrency = CURRENCIES.find((c) => c.code === currency);
-  //   const display = `${currentCurrency.symbol} ${currentCurrency.code}`;
-  //   const choices = CURRENCIES.map((c) => {
-  //     const display = `${c.code} ${c.symbol}`;
-  //     const onClick = currencyHandler(c.code);
-  //     return { display, onClick };
-  //   });
-
-  //   //return renderDropdown("Select Currency", display, choices);
-  //   return renderFields("currency");
-  // };
-
-  // const amountHandler = (amountChoice) => () => {
-  //   setAmount(amountChoice);
-  //   setShowCustomAmount(false);
-  // };
-
-  // const otherAmountHandler = () => {
-  //   setShowCustomAmount(true);
-  // };
-
-  // const handleCustomAmount = (e) => {
-  //   const customAmount = e.target.value;
-  //   setAmount(customAmount);
-  // };
-
-  // const renderAmountSelector = () => {
-  //   const currentCurrency = CURRENCIES.find((c) => c.code === currency);
-  //   const display = showCustomAmount
-  //     ? "Custom Amount"
-  //     : `${currentCurrency.symbol} ${amount}`;
-  //   const choices = AMOUNTS.map((a) => {
-  //     const display = `${currentCurrency.symbol} ${a}`;
-  //     const onClick = amountHandler(a);
-  //     return { display, onClick };
-  //   });
-  //   choices.push({ display: "Custom amount", onClick: otherAmountHandler });
-
-  //   return (
-  //     <div>{/* {renderDropdown("Select Amount", display, choices)} */}</div>
-  //   );
-  // };
-
   const renderDonationAmount = () => {
+    const amount = formValues.donationAmount === "Other" ? formValues.customAmount : formValues.donationAmount;
+
     return (
-      <div>
-        <h1>
-          {currency.toLocaleUpperCase()}{" "}
+      <Box fontWeight={700}>
+        <h2>
+          {formValues.currency.toLocaleUpperCase()}{" "}
           {amount.toLocaleString(navigator.language, {
             minimumFractionDigits: 2,
           })}{" "}
-        </h1>
-      </div>
+        </h2>
+      </Box>
     );
   };
 
   const renderPersonalInformationForm = () => {
     return (
-      <div>
-        <Grid container spacing={4}>
-          {renderFields("firstName")}
-          {renderFields("lastName")}
-          {renderFields("companyName")}
-          {renderFields("email")}
-          {renderFields("anonymousDonation")}
-          {renderFields("comment")}
-        </Grid>
-      </div>
+      <Grid container spacing={4}>
+        {renderField("name")}
+        {renderField("companyName")}
+        {renderField("email")}
+        {renderField("anonymousDonation")}
+        {renderField("comment")}
+      </Grid>
     );
   };
 
@@ -248,56 +165,62 @@ export default function CheckoutForm() {
     };
 
     return (
-      <div className="mb-4">
+      <Box mb={3}>
         <CardElement className="sr-input sr-card-element" options={options} />
-      </div>
+      </Box>
     );
   };
-  const renderSubsectionheader = (label) => {
+
+  const renderSectionHeader = (label, variant, bottomMargin) => {
     return (
-      <Typography className="subsectionheader" variant="h5">
-        {label}
-      </Typography>
-    );
-  };
+      <Box mb={bottomMargin}>
+        <Typography variant={variant}>{label}</Typography>
+      </Box>
+    )
+  }
+
   const renderForm = () => {
     // className="sr-combo-inputs"
     return (
-      <form onSubmit={handleSubmit}>
-        {renderSubsectionheader("Donation Form")}
-        <Grid container spacing={4}>
-          {renderFields("currency")}
-          {renderFields("donationAmount")}
-          {formValues.donationAmount === "Other"
-            ? renderFields("customAmount")
-            : null}
-        </Grid>
-        {renderSubsectionheader("Personal Information")}
-        <Grid container spacing={4}>
-          {renderPersonalInformationForm("Personal Information")}
-        </Grid>
-
-        {renderSubsectionheader("Credit Card Information")}
-
-        <Box mt={4}>
-          {renderCreditCardForm()}
+      <Box>
+        {renderSectionHeader("Donation Form", "h3", 2)}
+        <Box mb={4}>
           <Grid container spacing={4}>
-            {renderDonationAmount()}
-            {error && <div className="message sr-field-error">{error}</div>}
+            {renderField("currency")}
+            {renderField("donationAmount")}
+            {formValues.donationAmount === "Other"
+              ? renderField("customAmount")
+              : null}
           </Grid>
         </Box>
-        <Box mt={4} textAlign="right">
+
+        {renderSectionHeader("Personal Information", "h4", 2)}
+        <Box mb={2}>
+          {renderPersonalInformationForm()}
+        </Box>
+
+        {renderSectionHeader("Payment Information", "h4", 2)}
+        <Box mb={2}>
+          {renderCreditCardForm()}
+          {renderDonationAmount()}
+          {error && <div className="message sr-field-error">{error}</div>}
+        </Box>
+        <Box mb={2} textAlign="right">
           <Button
-            className="btn btn-success"
-            disabled={processing || !clientSecret || !stripe}
+
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
           >
             {" "}
             {processing ? "Processing…" : "Pay"}
           </Button>
         </Box>
-      </form>
+      </Box>
     );
   };
+
+  // disabled={processing || !clientSecret || !stripe}
 
   return (
     <div className="checkout-form">
