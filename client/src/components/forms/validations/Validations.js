@@ -3,7 +3,10 @@ import {
   emailIsValid,
   lengthAtMostX,
 } from "./text";
-import { isIntegerNumber as isIntegerNumberUtil } from "./number";
+import {
+  isIntegerNumber as isIntegerNumberUtil,
+  numberAtLeastX,
+} from "./number";
 import errorTypes from "./errorTypes";
 
 export const nameValidator = {
@@ -19,6 +22,10 @@ export const nameMaxLengthValidator = {
 export const numberValidator = {
   validate: (value) => isIntegerNumberUtil(value),
   validationErrorMsg: errorTypes.numberOnly,
+};
+export const numberMinValidator = {
+  validate: (value) => numberAtLeastX(value, 10),
+  validationErrorMsg: errorTypes.numberMin10,
 };
 
 export const emailValidator = {
