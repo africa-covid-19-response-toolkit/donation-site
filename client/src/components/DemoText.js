@@ -6,7 +6,7 @@ export default function DemoText() {
     <div className="banner">
       <span>
         This is a donation site for {" "}
-        <a href="https://ethiocovid19rt.com" target="_blank" without rel="noopener noreferrer">the Ethiopia COVID-19 Response Taskforce</a>
+        <a href="https://ethiocovid19rt.com" target="_blank" without="true" rel="noopener noreferrer">the Ethiopia COVID-19 Response Taskforce</a>
       </span>
     </div>
   );

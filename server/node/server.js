@@ -6,6 +6,11 @@ const bodyParser = require("body-parser");
 const app = express();
 const { resolve } = require("path");
 
+stripe.applePayDomains.create({
+  domain_name: '3820b0e4.ngrok.io',
+}).then(() => {
+  console.log('apple domain set')
+})
 
 app.use(bodyParser.json());
 app.use(

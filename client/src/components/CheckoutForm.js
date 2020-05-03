@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { CardElement, PaymentRequestButtonElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import "./CheckoutForm.css";
 import api from "../api";
 
 const CURRENCIES = [
-  { code: 'USD', symbol: '$' },
-  { code: 'EUR', symbol: '€' }
+  { code: 'usd', symbol: '$' },
+  { code: 'eur', symbol: '€' }
 ];
-const DEFAULT_CURRENCY = "USD";
+const DEFAULT_CURRENCY = "usd";
 
 const AMOUNTS = [30,100,365,1000,5000,10000];
 const DEFAULT_AMOUNT = 100;
@@ -17,6 +17,7 @@ export default function CheckoutForm() {
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [showCustomAmount, setShowCustomAmount] = useState(false)
   const [clientSecret, setClientSecret] = useState(null);
+  const [paymentRequest, setPaymentRequest] = useState(null);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
   const [succeeded, setSucceeded] = useState(false);
@@ -35,47 +36,78 @@ export default function CheckoutForm() {
     // });
 
     // Step 2: Create PaymentIntent over Stripe API
-    api
-      .createPaymentIntent({
-        payment_method_types: ["card"],
-        currency,
-        amount: amount * 100
-      })
-      .then(clientSecret => {
-        setClientSecret(clientSecret);
-      })
-      .catch(err => {
-        setError(err.message);
-      });
-  }, [currency, amount]);
+    // api
+    //   .createPaymentIntent({
+    //     payment_method_types: ["card"],
+    //     currency,
+    //     amount: amount * 100
+    //   })
+    //   .then(clientSecret => {
+    //     setClientSecret(clientSecret);
+    //   })
+    //   .catch(err => {
+    //     setError(err.message);
+    //   });
 
-  const handleSubmit = async ev => {
-    ev.preventDefault();
-    setProcessing(true);
+      if (stripe) {
 
-    // Step 3: Use clientSecret from PaymentIntent and the CardElement
-    // to confirm payment with stripe.confirmCardPayment()
-    const payload = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: elements.getElement(CardElement),
-        billing_details: {
-          name: ev.target.name.value
-        }
+        const paymentRequest = stripe.paymentRequest({
+          country: 'US',
+          currency: currency,
+          total: {
+            label: 'Demo total',
+            amount: amount * 100,
+          },
+          requestPayerName: true,
+          requestPayerEmail: true,
+        });
+
+        // Check the availability of the Payment Request API first.
+        paymentRequest.canMakePayment().then(result => {
+          console.log('can make paymentRequest', paymentRequest, result);
+
+          if (result) {
+            setPaymentRequest(paymentRequest);
+          }
+        });
       }
-    });
+  }, [stripe, currency, amount]);
 
-    if (payload.error) {
-      setError(`Payment failed: ${payload.error.message}`);
-      setProcessing(false);
-      console.log("[error]", payload.error);
-    } else {
-      setError(null);
-      setSucceeded(true);
-      setProcessing(false);
-      setMetadata(payload.paymentIntent);
-      console.log("[PaymentIntent]", payload.paymentIntent);
+  useEffect(() => {
+    if (paymentRequest) {
+      console.log('init paymentmethod event');
+      paymentRequest.on('paymentmethod', async (ev) => {
+        ev.preventDefault();
+        setProcessing(true);
+
+        // Step 3: Use clientSecret from PaymentIntent and the CardElement
+        // to confirm payment with stripe.confirmCardPayment()
+        const payload = await stripe.confirmCardPayment(
+          clientSecret,
+          { paymentmethod: ev.paymentMethod.id },
+          {handleActions: false}
+          // payment_method: {
+          //   card: elements.getElement(CardElement),
+          //   billing_details: {
+          //     name: ev.target.name.value
+          //   }
+          // }
+        );
+
+        if (payload.error) {
+          setError(`Payment failed: ${payload.error.message}`);
+          setProcessing(false);
+          console.log("[error]", payload.error);
+        } else {
+          setError(null);
+          setSucceeded(true);
+          setProcessing(false);
+          setMetadata(payload.paymentIntent);
+          console.log("[PaymentIntent]", payload.paymentIntent);
+        }
+      });
     }
-  };
+  }, [paymentRequest]);
 
   const renderSuccess = () => {
     return (
@@ -92,10 +124,10 @@ export default function CheckoutForm() {
   const renderFormField = (label, type, id, placeholder) => {
     // <label for={id}>{label}</label>
     return (
-      <div class="form-group">
+      <div className="form-group">
         <input
           type={type}
-          class="form-control"
+          className="form-control"
           id={id}
           placeholder={label}
           autoComplete={id}
@@ -113,8 +145,8 @@ export default function CheckoutForm() {
             {display}
           </button>
           <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            {choices.map(choice => (
-              <a className="dropdown-item" onClick={choice.onClick}>{choice.display}</a>
+            {choices.map((choice, idx) => (
+              <a className="dropdown-item" onClick={choice.onClick} key={idx}>{choice.display}</a>
             ))}
           </div>
         </div>
@@ -154,10 +186,10 @@ export default function CheckoutForm() {
 
   const renderCustomAmountField = () => {
     return (
-      <div class="form-group">
+      <div className="form-group">
         <input
           type="text"
-          class="form-control"
+          className="form-control"
           id="custom-amount"
           placeholder="Custom amount"
           onChange={handleCustomAmount}
@@ -240,10 +272,18 @@ export default function CheckoutForm() {
     );
   }
 
+  // <button
+  //   className="btn btn-success"
+  //   disabled={processing || !clientSecret || !stripe}
+  // >
+  //   {processing ? "Processing…" : "Pay"}
+  // </button>
+
   const renderForm = () => {
     // className="sr-combo-inputs"
+    console.log('paymentRequest', paymentRequest)
     return (
-      <form onSubmit={handleSubmit}>
+      <form>
         <h3>Donation Form</h3>
 
         <div>
@@ -255,12 +295,8 @@ export default function CheckoutForm() {
 
           {error && <div className="message sr-field-error">{error}</div>}
 
-          <button
-            className="btn btn-success"
-            disabled={processing || !clientSecret || !stripe}
-          >
-            {processing ? "Processing…" : "Pay"}
-          </button>
+          { paymentRequest && (<PaymentRequestButtonElement options={{paymentRequest}} />) }
+
         </div>
       </form>
     );
