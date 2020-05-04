@@ -4,7 +4,7 @@ const { handleResponse, handleError,  getPublicKey, createPaymentIntent, receive
 
 module.exports.stripe =  async (event, context, callback) => {
 
-    const {requestContext: { path, httpMethod, body} } = event;
+    const {requestContext: { path, httpMethod}, body } = event;
 
     switch (httpMethod) {
         case 'GET':
@@ -15,8 +15,9 @@ module.exports.stripe =  async (event, context, callback) => {
 
         case 'POST':
             if(path.indexOf('create-payment-intent') !== -1) {      
-                try {                    
-                    const response = await createPaymentIntent(body);
+                try {  
+                    const data = JSON.parse(body);           
+                    const response = await createPaymentIntent(data);
                     handleResponse(callback, response , 200);
                 } catch (error) {
                     handleError(callback, '', error);
