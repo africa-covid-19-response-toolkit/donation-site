@@ -1,30 +1,32 @@
 import React from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import DemoText from "./components/DemoText";
 import CheckoutForm from "./components/CheckoutForm";
 
+import { Box, Container, Grid } from "@material-ui/core";
 import api from "./api";
 
-import "./App.css";
+// import "./App.css";
 
-const stripePromise = api.getPublicStripeKey().then(key => loadStripe(key));
+const stripePromise = api.getPublicStripeKey().then((key) => loadStripe(key));
 
 export default function App() {
   return (
-    <div className=".container">
-      <div className="sr-root">
-        <div className="sr-main">
-          <header className="sr-header">
-            <div className="sr-header__logo" />
-          </header>
+    <Container maxWidth={'md'}>
+      <Box my={4}>
+        <header className="sr-header">
+          <div className="sr-header__logo" />
+        </header>
+        <Box mb={5}>
           <Elements stripe={stripePromise}>
             <CheckoutForm />
           </Elements>
-        </div>
-
-      </div>
-      <DemoText />
-    </div>
+        </Box>
+        <Box>
+          This is a donation site for {" "}
+          <a href="https://ethiocovid19rt.com" target="_blank" without rel="noopener noreferrer">the Ethiopia COVID-19 Response Taskforce</a>
+        </Box>
+      </Box>
+    </Container>
   );
 }
