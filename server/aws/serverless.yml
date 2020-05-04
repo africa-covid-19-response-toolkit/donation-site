@@ -15,6 +15,12 @@ service: donation-site-gateway
 
 frameworkVersion: ">=1.1.0 <2.0.0"
 
+plugins:  
+  - serverless-offline
+
+custom:
+  secrets: ${file(config/secrets.json)}
+
 provider:
   name: aws
   runtime: nodejs12.x
@@ -22,10 +28,13 @@ provider:
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   environment:
     DOMAIN_NAME: value1
-    STRIPE_SECRET_KEY: ${ssm:/stripe_gateway~true}
-    STRIPE_PUBLISHABLE_KEY: test
-    AUTH_ISS: test
+  #  STRIPE_SECRET_KEY: ${ssm:/stripe_gateway~true}
+
+    STRIPE_PUBLISHABLE_KEY: ${self:custom.secrets.stripePublishKey}
+    STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
+    STRIPE_WEBHOOK_SECRET: ${self:custom.secrets.stripeWebHookSecretKey}
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  
 
   iamRoleStatements:
     - Effect: Allow
@@ -37,39 +46,32 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
-
+package:
+  include:
+    - config/**
+    - node_modules/**
+  exclude:
+    - package.json
   
 functions:
   stripe:
-    handler: handler.handler
+    handler: handlers/stripe.stripe
     events:
       - http:
           path: /
           method: get
+          cors: true
       - http:
           path: /public-key
           method: get
-      - http:
-          path: /product-details
-          method: get
+          cors: true
       - http:
           path: /create-payment-intent
-          method: get
-      - http:
-          path: /main/{type}
-          method: get
-          request:
-            parameters:
-              paths:
-                type: true
-          
-  store:
-    handler: handler.handler
-    events:
-      - http:
-          path: /save
           method: post
           cors: true
+
+
+
 
 
 
