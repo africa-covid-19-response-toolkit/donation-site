@@ -1,12 +1,25 @@
 import {
   nameValidator,
   emailValidator,
-  numberValidator,
+  amountValidator,
 } from "../components/forms/validations/Validations";
+
 const CURRENCIES = [
-  { code: "USD", symbol: "$" },
-  { code: "EUR", symbol: "€" },
+  { code: "USD", symbol: "$", name: "US dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "Pound Sterling" },
+  { code: "AUD", symbol: "$", name: "Australian Dollars" },
+  { code: "CAD", symbol: "$", name: "Canadian Dollars" },
+  { code: "JPY", symbol: "¥", name: "Japanees Yen " },
+  { code: "NOK", symbol: "NOK kr", name: "Norwegian Krone" },
+  { code: "ZAR", symbol: "R", name: "South African Rand" },
+  { code: "SEK", symbol: "SEK kr", name: "Swidish Korona" },
+  { code: "CHF", symbol: "CHF", name: "Swiss Frank" },
+  { code: "KES", symbol: "Ksh", name: "Kenyan Chilling" },
+  { code: "SAR", symbol: "ريال سعودي", name: "Saudi Riyal" },
+  { code: "ETB", symbol: "Br", name: "Ethiopian Birr" },
 ];
+
 const DEFAULT_CURRENCY = "USD";
 const DEFAULT_AMOUNT = 100;
 const AMOUNTS = [30, 100, 365, 1000, 5000, 10000, "Other"];
@@ -71,12 +84,13 @@ const COMMON_FIELDS = (lang, handleFieldChange, langCode) => {
       offLabel: lang.t("no"),
     },
     {
-      type: "number",
+      type: "text",
       label: lang.t("customAmount"),
       property: "customAmount",
       focus: false,
-      onValidate: numberValidator.validate,
-      validationErrorMsg: lang.t(numberValidator.validationErrorMsg),
+      active: false,
+      onValidate: amountValidator.validate,
+      validationErrorMsg: lang.t(amountValidator.validationErrorMsg),
       onChange: handleFieldChange("customAmount"),
     },
     {

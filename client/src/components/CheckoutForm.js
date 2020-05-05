@@ -1,30 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { Box, Grid, Typography, Button } from "@material-ui/core";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import ReCAPTCHA from "react-google-recaptcha";
+import { isEmpty } from "lodash";
+import config from "../constants/config";
 import { renderFormField } from "./forms/forms-util";
 
 import "./CheckoutForm.css";
 import api from "../api";
 import { COMMON_FIELDS } from "../constants/common-fields";
 import CheckoutFormInitialState from "./CheckOutFormInitialState";
-import languageStore from "../helpers/lang/language-store";
 
-export default function CheckoutForm() {
+const CheckoutForm = ({ langCode, lang }) => {
+  const TEST_SITE_KEY = config.captchaKey;
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
   const [succeeded, setSucceeded] = useState(false);
   const [processing, setProcessing] = useState(false);
   const stripe = useStripe();
+
   const elements = useElements();
+  const [captchaText, setCaptchaText] = useState("");
+  const [isCaptchaExpired, setCaptchaExpiry] = useState(false);
+  const [isCardInValid, setCardValidity] = useState(false);
+
   const [formValues, setFormValues] = useState({
     ...CheckoutFormInitialState,
   });
   const [clear, setClear] = useState(0);
-
-  // TODO: This should move to a tope level
-  const langCode = languageStore.langCode;
-  const lang = languageStore.lang;
 
   const handleFieldChange = (field) => (value) => {
     setFormValues({
@@ -46,7 +50,10 @@ export default function CheckoutForm() {
     // });
 
     // Step 2: Create PaymentIntent over Stripe API
-    const amount = formValues.donationAmount === "Other" ? formValues.customAmount : formValues.donationAmount;
+    const amount =
+      formValues.donationAmount === "Other"
+        ? formValues.customAmount
+        : formValues.donationAmount;
 
     api
       .createPaymentIntent({
@@ -55,7 +62,7 @@ export default function CheckoutForm() {
         amount: amount * 100,
       })
       .then((clientSecret) => {
-        console.log('clientSecret', clientSecret)
+        console.log("clientSecret", clientSecret);
         setClientSecret(clientSecret);
       })
       .catch((err) => {
@@ -66,7 +73,7 @@ export default function CheckoutForm() {
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     setProcessing(true);
-    console.log('formValues', formValues);
+    console.log("formValues", formValues);
 
     // Step 3: Use clientSecret from PaymentIntent and the CardElement
     // to confirm payment with stripe.confirmCardPayment()
@@ -74,7 +81,7 @@ export default function CheckoutForm() {
       payment_method: {
         card: elements.getElement(CardElement),
         billing_details: {
-          name: formValues.name
+          name: formValues.name,
         },
       },
     });
@@ -94,15 +101,64 @@ export default function CheckoutForm() {
     }
   };
 
+  const isFormValid = () => {
+    let isValid = true;
+    let isCardvalid = true;
+
+    if (!isEmpty(captchaText) && !isCaptchaExpired) {
+      const cardElement = elements.getElement(CardElement);
+      isCardvalid = cardElement._invalid; // for the first load
+      cardElement.on("change", function (event) {
+        if (!event.complete) {
+          console.log(event);
+          setCardValidity(true);
+        } else {
+          setCardValidity(false);
+        }
+      });
+
+      fields.forEach((f) => {
+        if (f.onValidate && f.active) {
+          isValid = isValid && f.onValidate(formValues[f.property]);
+        }
+      });
+    } else {
+      isValid = false;
+    }
+    return isValid && !isCardvalid;
+  };
+
+  const onCaptchaChange = (value) => {
+    setCaptchaText(value);
+
+    if (value === null) {
+      setCaptchaExpiry(true);
+    }
+  };
+
+  const renderCaptcha = () => {
+    return (
+      <Box my={2}>
+        <ReCAPTCHA
+          style={{ paddingTop: 20 }}
+          ref={React.createRef()}
+          sitekey={TEST_SITE_KEY}
+          onChange={onCaptchaChange}
+        />
+      </Box>
+    );
+  };
+
   const renderSuccess = () => {
     return (
-      <div className="sr-field-success message">
-        <h1>Your test payment succeeded</h1>
-        <p>View PaymentIntent response:</p>
-        <pre className="sr-callout">
-          <code>{JSON.stringify(metadata, null, 2)}</code>
-        </pre>
-      </div>
+      <Box>
+        <h1>Thank your for making a donation.</h1>
+        <Box mt={2}>
+          <a href="https://www.ethiopiatrustfund.org/">
+            <Typography>Go back to EDTF Homepage.</Typography>
+          </a>
+        </Box>
+      </Box>
     );
   };
   const renderField = (property) => {
@@ -110,20 +166,26 @@ export default function CheckoutForm() {
     if (!field) {
       return null;
     }
-
+    if (formValues.donationAmount === "Other") {
+      field.active = true;
+    }
     return (
       <Grid item xs={12} md={6}>
         {renderFormField(field, clear)}
       </Grid>
-    )
+    );
   };
 
   const renderDonationAmount = () => {
-    const amount = formValues.donationAmount === "Other" ? formValues.customAmount : formValues.donationAmount;
+    const amount =
+      formValues.donationAmount === "Other"
+        ? formValues.customAmount
+        : formValues.donationAmount;
 
     return (
       <Box fontWeight={700}>
         <h2>
+          Donating:&nbsp;&nbsp;
           {formValues.currency.toLocaleUpperCase()}{" "}
           {amount.toLocaleString(navigator.language, {
             minimumFractionDigits: 2,
@@ -176,8 +238,8 @@ export default function CheckoutForm() {
       <Box mb={bottomMargin}>
         <Typography variant={variant}>{label}</Typography>
       </Box>
-    )
-  }
+    );
+  };
 
   const renderForm = () => {
     // className="sr-combo-inputs"
@@ -195,9 +257,7 @@ export default function CheckoutForm() {
         </Box>
 
         {renderSectionHeader("Personal Information", "h4", 2)}
-        <Box mb={2}>
-          {renderPersonalInformationForm()}
-        </Box>
+        <Box mb={2}>{renderPersonalInformationForm()}</Box>
 
         {renderSectionHeader("Payment Information", "h4", 2)}
         <Box mb={2}>
@@ -206,10 +266,11 @@ export default function CheckoutForm() {
           {error && <div className="message sr-field-error">{error}</div>}
         </Box>
         <Box mb={2} textAlign="right">
+          {renderCaptcha()}
           <Button
-
             variant="contained"
             color="primary"
+            disabled={!isFormValid() || isCardInValid}
             onClick={handleSubmit}
           >
             {" "}
@@ -220,8 +281,6 @@ export default function CheckoutForm() {
     );
   };
 
-  // disabled={processing || !clientSecret || !stripe}
-
   return (
     <div className="checkout-form">
       <div className="sr-payment-form">
@@ -230,4 +289,5 @@ export default function CheckoutForm() {
       </div>
     </div>
   );
-}
+};
+export default CheckoutForm;
