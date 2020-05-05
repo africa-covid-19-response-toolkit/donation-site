@@ -5,8 +5,8 @@ const envToConfig = {
     captchaKey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
   },
   dev: {
-    apiUrl: "https://api.ethiopia-covid19.com/gateway",
-    captchaKey: "6LcrxegUAAAAAF70ogt8I22wz2HLojwH_N27uMvZ",
+    apiUrl: "https://api.ethiopia-covid19.com/gateway", // TODO update to dev host
+    captchaKey: "6LcrxegUAAAAAF70ogt8I22wz2HLojwH_N27uMvZ", // TODO update to host recaptcha
   },
 };
 

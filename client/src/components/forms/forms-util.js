@@ -44,13 +44,6 @@ const StatefulTextField = ({ field, clear }) => {
     firstUpdate.current = true;
     setValue(field.value || "");
   }, [clear]);
-  const formatAmount = (amount) => {
-    if (Number(amount)) {
-      return (field.value = new Intl.NumberFormat("en", {
-        useGrouping: true,
-      }).format(amount));
-    }
-  };
   const handleChange = (event) => {
     const newValue = event.target.value;
     setValue(newValue);
@@ -87,7 +80,6 @@ const StatefulTextField = ({ field, clear }) => {
       <InputLabel shrink>{label}</InputLabel>
       <TextField
         id={`${property}-outlined`}
-        value={formatAmount(value)}
         type={type}
         onChange={handleChange}
         onBlur={handleValidation}

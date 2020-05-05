@@ -136,24 +136,29 @@ const CheckoutForm = ({ langCode, lang }) => {
     }
   };
 
-  const loadCaptcha = () => {
+  const renderCaptcha = () => {
     return (
-      <ReCAPTCHA
-        style={{ paddingTop: 20 }}
-        ref={React.createRef()}
-        sitekey={TEST_SITE_KEY}
-        onChange={onCaptchaChange}
-      />
+      <Box my={2}>
+        <ReCAPTCHA
+          style={{ paddingTop: 20 }}
+          ref={React.createRef()}
+          sitekey={TEST_SITE_KEY}
+          onChange={onCaptchaChange}
+        />
+      </Box>
     );
   };
+
   const renderSuccess = () => {
     return (
-      <div className="sr-field-success message">
+      <Box>
         <h1>Thank your for making a donation.</h1>
-        <a href="https://www.ethiopiatrustfund.org/">
-          <Typography>Go back to EDTF Homepage</Typography>
-        </a>
-      </div>
+        <Box mt={2}>
+          <a href="https://www.ethiopiatrustfund.org/">
+            <Typography>Go back to EDTF Homepage.</Typography>
+          </a>
+        </Box>
+      </Box>
     );
   };
   const renderField = (property) => {
@@ -180,6 +185,7 @@ const CheckoutForm = ({ langCode, lang }) => {
     return (
       <Box fontWeight={700}>
         <h2>
+          Donating:&nbsp;&nbsp;
           {formValues.currency.toLocaleUpperCase()}{" "}
           {amount.toLocaleString(navigator.language, {
             minimumFractionDigits: 2,
@@ -260,7 +266,7 @@ const CheckoutForm = ({ langCode, lang }) => {
           {error && <div className="message sr-field-error">{error}</div>}
         </Box>
         <Box mb={2} textAlign="right">
-          {loadCaptcha()}
+          {renderCaptcha()}
           <Button
             variant="contained"
             color="primary"
@@ -274,8 +280,6 @@ const CheckoutForm = ({ langCode, lang }) => {
       </Box>
     );
   };
-
-  // disabled={processing || !clientSecret || !stripe}
 
   return (
     <div className="checkout-form">

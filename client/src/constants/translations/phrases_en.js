@@ -29,7 +29,7 @@ export default {
     email: "Email address must be valid",
     lengthAtMost100: "100 or few characters please",
     amountDec2Min10:
-      "Amount should be a number more than is 10 / Max decimal is 2 ",
+      "Please enter a valid amount (minimum 10). Example 100, 99.50",
   },
   comment: "Comment",
 };
