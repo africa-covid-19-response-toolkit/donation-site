@@ -23,7 +23,7 @@ const StatefulTextField = ({ field, clear }) => {
     validationErrorMsg,
     focus,
     type,
-    defaultvalue,
+    active,
   } = field;
   const [value, setValue] = useState(field.value || "");
   const [isValid, setIsValid] = useState(true);
@@ -44,7 +44,6 @@ const StatefulTextField = ({ field, clear }) => {
     firstUpdate.current = true;
     setValue(field.value || "");
   }, [clear]);
-
   const handleChange = (event) => {
     const newValue = event.target.value;
     setValue(newValue);
@@ -77,11 +76,10 @@ const StatefulTextField = ({ field, clear }) => {
   }
 
   return (
-    <Box>
+    <Box hidden={!active}>
       <InputLabel shrink>{label}</InputLabel>
       <TextField
         id={`${property}-outlined`}
-        value={value}
         type={type}
         onChange={handleChange}
         onBlur={handleValidation}
@@ -96,6 +94,9 @@ const StatefulTextField = ({ field, clear }) => {
   );
 };
 export const renderTextField = (field, clear) => {
+  if (typeof field.active == "undefined") {
+    field.active = true;
+  }
   return <StatefulTextField field={field} clear={clear} />;
 };
 const StatefulMultilineTextField = ({ field, clear }) => {
@@ -127,7 +128,6 @@ const StatefulMultilineTextField = ({ field, clear }) => {
     firstUpdate.current = true;
     setValue(field.value || "");
   }, [clear]);
-
   const handleChange = (event) => {
     const newValue = event.target.value;
     setValue(newValue);
@@ -276,8 +276,6 @@ export const renderFormField = (field, clear, md) => {
       return renderTextField(field, clear);
     case "multiline":
       return renderMultilineTextField(field, clear);
-    case "number":
-      return renderTextField(field, clear);
     case "switch":
       return renderSwitch(field, clear);
     case "select":
