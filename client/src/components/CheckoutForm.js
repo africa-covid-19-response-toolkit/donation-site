@@ -23,7 +23,7 @@ const CheckoutForm = ({ langCode, lang }) => {
   const elements = useElements();
   const [captchaText, setCaptchaText] = useState("");
   const [isCaptchaExpired, setCaptchaExpiry] = useState(false);
-  const [isCardInValid, setCardValidity] = useState(false);
+  const [cardIsValid, setCardIsValid] = useState(false);
 
   const [formValues, setFormValues] = useState({
     ...CheckoutFormInitialState,
@@ -40,16 +40,24 @@ const CheckoutForm = ({ langCode, lang }) => {
   const fields = COMMON_FIELDS(lang, handleFieldChange, langCode);
 
   useEffect(() => {
-    // Step 1: Fetch product details such as amount and currency from
-    // API to make sure it can't be tampered with in the client.
-    // setCurrency(DEFAULT_CURRENCY);
-    // setAmount(DEFAULT_AMOUNT);
-    // api.getProductDetails().then(productDetails => {
-    //   setAmount(productDetails.amount / 100);
-    //   setCurrency(productDetails.currency);
-    // });
+    if (elements) {
+      console.log('set card change');
+      const cardElement = elements.getElement(CardElement);
+      cardElement.on("change", function (event) {
+        console.log('card element', cardIsValid, event);
+        if (event.complete) {
+          console.log('complete')
+          setCardIsValid(true);
+        } else {
+          console.log('incomplete')
+          setCardIsValid(false);
+        }
+      });
+    }
+  }, [elements])
 
-    // Step 2: Create PaymentIntent over Stripe API
+  useEffect(() => {
+    // Create PaymentIntent over Stripe API
     const amount =
       formValues.donationAmount === "Other"
         ? formValues.customAmount
@@ -62,7 +70,6 @@ const CheckoutForm = ({ langCode, lang }) => {
         amount: amount * 100,
       })
       .then((clientSecret) => {
-        console.log("clientSecret", clientSecret);
         setClientSecret(clientSecret);
       })
       .catch((err) => {
@@ -73,7 +80,6 @@ const CheckoutForm = ({ langCode, lang }) => {
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     setProcessing(true);
-    console.log("formValues", formValues);
 
     // Step 3: Use clientSecret from PaymentIntent and the CardElement
     // to confirm payment with stripe.confirmCardPayment()
@@ -89,7 +95,7 @@ const CheckoutForm = ({ langCode, lang }) => {
     if (payload.error) {
       setError(`Payment failed: ${payload.error.message}`);
       setProcessing(false);
-      console.log("[error]", payload.error);
+      // console.log("[error]", payload.error);
     } else {
       setError(null);
       setSucceeded(true);
@@ -97,26 +103,16 @@ const CheckoutForm = ({ langCode, lang }) => {
       setMetadata(payload.paymentIntent);
       setFormValues({});
       setClear(clear + 1);
-      console.log("[PaymentIntent]", payload.paymentIntent);
+      // console.log("[PaymentIntent]", payload.paymentIntent);
     }
   };
 
   const isFormValid = () => {
     let isValid = true;
-    let isCardvalid = true;
+    // let cardIsValid = true;
 
     if (!isEmpty(captchaText) && !isCaptchaExpired) {
-      const cardElement = elements.getElement(CardElement);
-      isCardvalid = cardElement._invalid; // for the first load
-      cardElement.on("change", function (event) {
-        if (!event.complete) {
-          console.log(event);
-          setCardValidity(true);
-        } else {
-          setCardValidity(false);
-        }
-      });
-
+      console.log("valudate", cardIsValid);
       fields.forEach((f) => {
         if (f.onValidate && f.active) {
           isValid = isValid && f.onValidate(formValues[f.property]);
@@ -125,7 +121,7 @@ const CheckoutForm = ({ langCode, lang }) => {
     } else {
       isValid = false;
     }
-    return isValid && !isCardvalid;
+    return isValid && cardIsValid;
   };
 
   const onCaptchaChange = (value) => {
@@ -270,7 +266,7 @@ const CheckoutForm = ({ langCode, lang }) => {
           <Button
             variant="contained"
             color="primary"
-            disabled={!isFormValid() || isCardInValid}
+            disabled={!isFormValid()}
             onClick={handleSubmit}
           >
             {" "}
