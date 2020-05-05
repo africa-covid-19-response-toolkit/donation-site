@@ -18,14 +18,12 @@ frameworkVersion: ">=1.1.0 <2.0.0"
 plugins:
   - serverless-offline
   - serverless-s3-sync
-  - serverless-single-page-app-plugin
 
 custom:
- # secrets: ${file(config/secrets.json)}
-  s3Bucket: donate.ethiocovid19rt.com
+  s3Bucket: ecrt.ethiopiatrustfund.org
   s3-sync:
-    - folder: ../../client/build
-      bucket: ${self:custom.s3Bucket}
+    - bucketName: ${self:custom.s3Bucket}
+      localDir: ../../client/build
 
 provider:
   name: aws
@@ -33,7 +31,6 @@ provider:
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   environment:
-    DOMAIN_NAME: value1
     STRIPE_SECRET_KEY: ${ssm:/STRIPE_SECRET_KEY~true}
     STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
   #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
@@ -50,12 +47,6 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
-package:
-  include:
-    - config/**
-    - node_modules/**
-  exclude:
-    - package.json
   
 functions:
   stripe:
@@ -71,6 +62,10 @@ functions:
           cors: true
       - http:
           path: /create-payment-intent
+          method: post
+          cors: true
+      - http:
+          path: /webhook
           method: post
           cors: true
 
@@ -124,8 +119,8 @@ resources:
               #   OriginAccessIdentity: origin-access-identity/cloudfront/E127EXAMPLE51Z
           Enabled: 'true'
           ## Uncomment the following section in case you are using a custom domain
-          Aliases:
-           - ${self:custom.s3Bucket}
+         ## Aliases:
+          # - ${self:custom.s3Bucket}
           DefaultRootObject: index.html
           ## Since the Single Page App is taking care of the routing we need to make sure ever path is served with index.html
           ## The only exception are files that actually exist e.h. app.js, reset.css
@@ -161,7 +156,7 @@ resources:
           #   Prefix: myprefix    
     TodosDynamoDbTable:
       Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
+     # DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
           -
