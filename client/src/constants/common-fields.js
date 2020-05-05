@@ -88,6 +88,7 @@ const COMMON_FIELDS = (lang, handleFieldChange, langCode) => {
       label: lang.t("customAmount"),
       property: "customAmount",
       focus: false,
+      active: false,
       onValidate: amountValidator.validate,
       validationErrorMsg: lang.t(amountValidator.validationErrorMsg),
       onChange: handleFieldChange("customAmount"),

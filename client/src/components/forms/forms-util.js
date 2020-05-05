@@ -23,6 +23,7 @@ const StatefulTextField = ({ field, clear }) => {
     validationErrorMsg,
     focus,
     type,
+    active,
   } = field;
   const [value, setValue] = useState(field.value || "");
   const [isValid, setIsValid] = useState(true);
@@ -82,7 +83,7 @@ const StatefulTextField = ({ field, clear }) => {
   }
 
   return (
-    <Box>
+    <Box hidden={!active}>
       <InputLabel shrink>{label}</InputLabel>
       <TextField
         id={`${property}-outlined`}
@@ -101,6 +102,9 @@ const StatefulTextField = ({ field, clear }) => {
   );
 };
 export const renderTextField = (field, clear) => {
+  if (typeof field.active == "undefined") {
+    field.active = true;
+  }
   return <StatefulTextField field={field} clear={clear} />;
 };
 const StatefulMultilineTextField = ({ field, clear }) => {

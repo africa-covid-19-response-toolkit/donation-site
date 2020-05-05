@@ -101,7 +101,11 @@ const CheckoutForm = ({ langCode, lang }) => {
   const isFormValid = () => {
     let isValid = true;
     if (!isEmpty(captchaText)) {
-      isValid = true;
+      fields.forEach((f) => {
+        if (f.onValidate && f.active) {
+          isValid = isValid && f.onValidate(formValues[f.property]);
+        }
+      });
     } else {
       isValid = false;
     }
@@ -110,7 +114,6 @@ const CheckoutForm = ({ langCode, lang }) => {
 
   const onCaptchaChange = (value) => {
     setCaptchaText(value);
-    console.log(captchaText);
   };
   const loadCaptcha = () => {
     return (
@@ -137,7 +140,9 @@ const CheckoutForm = ({ langCode, lang }) => {
     if (!field) {
       return null;
     }
-
+    if (formValues.donationAmount === "Other") {
+      field.active = true;
+    }
     return (
       <Grid item xs={12} md={6}>
         {renderFormField(field, clear)}
