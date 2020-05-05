@@ -19,8 +19,11 @@ const CheckoutForm = ({ langCode, lang }) => {
   const [succeeded, setSucceeded] = useState(false);
   const [processing, setProcessing] = useState(false);
   const stripe = useStripe();
+
   const elements = useElements();
   const [captchaText, setCaptchaText] = useState("");
+  const [isCaptchaExpired, setCaptchaExpiry] = useState(false);
+  const [isCardInValid, setCardValidity] = useState(false);
 
   const [formValues, setFormValues] = useState({
     ...CheckoutFormInitialState,
@@ -100,7 +103,20 @@ const CheckoutForm = ({ langCode, lang }) => {
 
   const isFormValid = () => {
     let isValid = true;
-    if (!isEmpty(captchaText)) {
+    let isCardvalid = true;
+
+    if (!isEmpty(captchaText) && !isCaptchaExpired) {
+      const cardElement = elements.getElement(CardElement);
+      isCardvalid = cardElement._invalid; // for the first load
+      cardElement.on("change", function (event) {
+        if (!event.complete) {
+          console.log(event);
+          setCardValidity(true);
+        } else {
+          setCardValidity(false);
+        }
+      });
+
       fields.forEach((f) => {
         if (f.onValidate && f.active) {
           isValid = isValid && f.onValidate(formValues[f.property]);
@@ -109,12 +125,17 @@ const CheckoutForm = ({ langCode, lang }) => {
     } else {
       isValid = false;
     }
-    return isValid;
+    return isValid && !isCardvalid;
   };
 
   const onCaptchaChange = (value) => {
     setCaptchaText(value);
+
+    if (value === null) {
+      setCaptchaExpiry(true);
+    }
   };
+
   const loadCaptcha = () => {
     return (
       <ReCAPTCHA
@@ -243,7 +264,7 @@ const CheckoutForm = ({ langCode, lang }) => {
           <Button
             variant="contained"
             color="primary"
-            disabled={!isFormValid()}
+            disabled={!isFormValid() || isCardInValid}
             onClick={handleSubmit}
           >
             {" "}
