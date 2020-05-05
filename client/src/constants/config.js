@@ -1,13 +1,13 @@
 // Map to environment name
 const envToConfig = {
   local: {
-    apiUrl: "http://localhost:3000/dev/gateway",
+    apiUrl: "http://localhost:3000/dev",
     captchaKey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
   },
   dev: {
-    apiUrl: "https://api.ethiopia-covid19.com/gateway", // TODO update to dev host
-    captchaKey: "6LcrxegUAAAAAF70ogt8I22wz2HLojwH_N27uMvZ", // TODO update to host recaptcha
-  },
+    apiUrl: "https://ghbvixyza6.execute-api.us-east-1.amazonaws.com/dev",
+    captchaKey: "6LcQGPMUAAAAAKmpXT-34g-mdFsd2zByI-mYn_jO"
+  }
 };
 
 const env = process.env.REACT_APP_BUILD_ENV; // eslint-disable-line no-undef
