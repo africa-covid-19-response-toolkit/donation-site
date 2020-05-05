@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Box, Grid, Typography, Button } from "@material-ui/core";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import ReCAPTCHA from "react-google-recaptcha";
+import { isEmpty } from "lodash";
+import config from "../constants/config";
 import { renderFormField } from "./forms/forms-util";
 
 import "./CheckoutForm.css";
 import api from "../api";
 import { COMMON_FIELDS } from "../constants/common-fields";
 import CheckoutFormInitialState from "./CheckOutFormInitialState";
-import languageStore from "../helpers/lang/language-store";
 
-export default function CheckoutForm() {
+const CheckoutForm = ({ langCode, lang }) => {
+  const TEST_SITE_KEY = config.captchaKey;
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
@@ -17,14 +20,12 @@ export default function CheckoutForm() {
   const [processing, setProcessing] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
+  const [captchaText, setCaptchaText] = useState("");
+
   const [formValues, setFormValues] = useState({
     ...CheckoutFormInitialState,
   });
   const [clear, setClear] = useState(0);
-
-  // TODO: This should move to a tope level
-  const langCode = languageStore.langCode;
-  const lang = languageStore.lang;
 
   const handleFieldChange = (field) => (value) => {
     setFormValues({
@@ -97,11 +98,37 @@ export default function CheckoutForm() {
     }
   };
 
+  const isFormValid = () => {
+    let isValid = true;
+    if (!isEmpty(captchaText)) {
+      isValid = true;
+    } else {
+      isValid = false;
+    }
+    return isValid;
+  };
+
+  const onCaptchaChange = (value) => {
+    setCaptchaText(value);
+    console.log(captchaText);
+  };
+  const loadCaptcha = () => {
+    return (
+      <ReCAPTCHA
+        style={{ paddingTop: 20 }}
+        ref={React.createRef()}
+        sitekey={TEST_SITE_KEY}
+        onChange={onCaptchaChange}
+      />
+    );
+  };
   const renderSuccess = () => {
     return (
       <div className="sr-field-success message">
         <h1>Thank your for making a donation.</h1>
-        <a href="https://www.ethiopiatrustfund.org/"><Typography>Go back to EDTF Homepage</Typography></a>
+        <a href="https://www.ethiopiatrustfund.org/">
+          <Typography>Go back to EDTF Homepage</Typography>
+        </a>
       </div>
     );
   };
@@ -207,7 +234,13 @@ export default function CheckoutForm() {
           {error && <div className="message sr-field-error">{error}</div>}
         </Box>
         <Box mb={2} textAlign="right">
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
+          {loadCaptcha()}
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!isFormValid()}
+            onClick={handleSubmit}
+          >
             {" "}
             {processing ? "Processing…" : "Pay"}
           </Button>
@@ -226,4 +259,5 @@ export default function CheckoutForm() {
       </div>
     </div>
   );
-}
+};
+export default CheckoutForm;
