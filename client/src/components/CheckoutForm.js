@@ -97,11 +97,8 @@ export default function CheckoutForm() {
   const renderSuccess = () => {
     return (
       <div className="sr-field-success message">
-        <h1>Your test payment succeeded</h1>
-        <p>View PaymentIntent response:</p>
-        <pre className="sr-callout">
-          <code>{JSON.stringify(metadata, null, 2)}</code>
-        </pre>
+        <h1>Thank your for making a donation.</h1>
+        <a href="https://www.ethiopiatrustfund.org/"><Typography>Go back to EDTF Homepage</Typography></a>
       </div>
     );
   };

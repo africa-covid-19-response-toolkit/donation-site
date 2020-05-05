@@ -14,8 +14,9 @@ export default function App() {
   return (
     <Container maxWidth={'md'}>
       <Box my={4}>
-        <header className="sr-header">
+        <header className="sr-header" style={{ display: "flex" }}>
           <div className="sr-header__logo" />
+          <a href="https://www.ethiopiatrustfund.org/">Home</a>
         </header>
         <Box mb={5}>
           <Elements stripe={stripePromise}>
