@@ -1,6 +1,10 @@
+import config from "./constants/config";
+
+const { apiUrl } = config;
+
 const createPaymentIntent = options => {
   return window
-    .fetch(`/create-payment-intent`, {
+    .fetch(`${apiUrl}/create-payment-intent`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -26,7 +30,7 @@ const createPaymentIntent = options => {
 
 const getProductDetails = options => {
   return window
-    .fetch(`/product-details`, {
+    .fetch(`${apiUrl}//product-details`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -51,7 +55,7 @@ const getProductDetails = options => {
 
 const getPublicStripeKey = options => {
   return window
-    .fetch(`/public-key`, {
+    .fetch(`${apiUrl}/public-key`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
