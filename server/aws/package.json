@@ -1,0 +1,29 @@
+{
+  "name": "stripe-recipe-demo",
+  "version": "1.0.0",
+  "description": "A Stripe demo",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "export IS_OFFLINE=true && serverless offline start -s dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "^10.13.0"
+  },
+  "author": "stripe-demos",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "serverless-s3bucket-sync": "^0.1.5",
+    "stripe": "^7.1.0"
+  },
+  "devDependencies": {
+    "serverless": "^1.67.0",
+    "serverless-offline": "^6.1.2",
+    "serverless-s3-sync": "^1.13.0",
+    "serverless-single-page-app-plugin": "^1.0.2"
+  }
+}

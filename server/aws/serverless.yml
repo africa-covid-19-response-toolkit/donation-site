@@ -15,11 +15,15 @@ service: donation-site-gateway
 
 frameworkVersion: ">=1.1.0 <2.0.0"
 
-plugins:  
+plugins:
   - serverless-offline
+  - serverless-s3-sync
 
 custom:
-  secrets: ${file(config/secrets.json)}
+  s3Bucket: ecrt.ethiopiatrustfund.org
+  s3-sync:
+    - bucketName: ${self:custom.s3Bucket}
+      localDir: ../../client/build
 
 provider:
   name: aws
@@ -27,12 +31,9 @@ provider:
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   environment:
-    DOMAIN_NAME: value1
-  #  STRIPE_SECRET_KEY: ${ssm:/stripe_gateway~true}
-
-    STRIPE_PUBLISHABLE_KEY: ${self:custom.secrets.stripePublishKey}
-    STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
-    STRIPE_WEBHOOK_SECRET: ${self:custom.secrets.stripeWebHookSecretKey}
+    STRIPE_SECRET_KEY: ${ssm:/STRIPE_SECRET_KEY~true}
+    STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
+  #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
   
 
@@ -46,12 +47,6 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
-package:
-  include:
-    - config/**
-    - node_modules/**
-  exclude:
-    - package.json
   
 functions:
   stripe:
@@ -69,21 +64,99 @@ functions:
           path: /create-payment-intent
           method: post
           cors: true
-
-
-
-
-
-
-
-
+      - http:
+          path: /webhook
+          method: post
+          cors: true
 
 # you can add CloudFormation resource templates here
 resources:
   Resources:
+    WebAppS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.s3Bucket}
+        AccessControl: PublicRead
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+    StaticSiteS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: WebAppS3Bucket
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+              - s3:GetObject
+              Resource:
+                Fn::Join: [
+                  "", [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "WebAppS3Bucket"
+                    },
+                    "/*"
+                  ]
+                ]
+    WebAppCloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - DomainName: ${self:custom.s3Bucket}.s3.amazonaws.com
+              ## An identifier for the origin which must be unique within the distribution
+              Id: WebApp
+              CustomOriginConfig:
+                HTTPPort: 80
+                HTTPSPort: 443
+                OriginProtocolPolicy: https-only
+              ## In case you want to restrict the bucket access use S3OriginConfig and remove CustomOriginConfig
+              # S3OriginConfig:
+              #   OriginAccessIdentity: origin-access-identity/cloudfront/E127EXAMPLE51Z
+          Enabled: 'true'
+          ## Uncomment the following section in case you are using a custom domain
+         ## Aliases:
+          # - ${self:custom.s3Bucket}
+          DefaultRootObject: index.html
+          ## Since the Single Page App is taking care of the routing we need to make sure ever path is served with index.html
+          ## The only exception are files that actually exist e.h. app.js, reset.css
+          CustomErrorResponses:
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            ## The origin id defined above
+            TargetOriginId: WebApp
+            ## Defining if and how the QueryString and Cookies are forwarded to the origin which in this case is S3
+            ForwardedValues:
+              QueryString: 'false'
+              Cookies:
+                Forward: none
+            ## The protocol that users can use to access the files in the origin. To allow HTTP use `allow-all`
+            ViewerProtocolPolicy: redirect-to-https
+          ## The certificate to use when viewers use HTTPS to request objects.
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: 'true'
+          ## Uncomment the following section in case you want to enable logging for CloudFront requests
+          # Logging:
+          #   IncludeCookies: 'false'
+          #   Bucket: mylogs.s3.amazonaws.com
+          #   Prefix: myprefix    
     TodosDynamoDbTable:
       Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
+     # DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
           -
@@ -97,3 +170,7 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
+  Outputs:
+    WebAppCloudFrontDistributionOutput:
+      Value:
+        'Fn::GetAtt': [ WebAppCloudFrontDistribution, DomainName ]
