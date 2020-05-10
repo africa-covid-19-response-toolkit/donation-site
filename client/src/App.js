@@ -2,6 +2,7 @@ import React from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "./components/CheckoutForm";
+import DonationProgress from "./components/ProgressBar"
 import languageStore from "../src/helpers/lang/language-store";
 
 import { Box, Container, Grid } from "@material-ui/core";
@@ -21,6 +22,11 @@ export default function App() {
           <div className="sr-header__logo" />
           <a href="https://www.ethiopiatrustfund.org/">Home</a>
         </header>
+        <Box mb={5}>
+          <Elements stripe={stripePromise}>
+            <DonationProgress langCode={langCode} lang={lang} />
+          </Elements>
+        </Box>
         <Box mb={5}>
           <Elements stripe={stripePromise}>
             <CheckoutForm langCode={langCode} lang={lang} />
