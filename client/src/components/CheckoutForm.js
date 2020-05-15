@@ -75,7 +75,7 @@ const CheckoutForm = ({ langCode, lang }) => {
       .catch((err) => {
         setError(err.message);
       });
-  }, [formValues]);
+  }, []);
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
