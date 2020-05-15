@@ -1,7 +1,7 @@
 // Map to environment name
 const envToConfig = {
   local: {
-    apiUrl: "http://localhost:4242",
+    apiUrl: "http://localhost:3000/dev",
     captchaKey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
   },
   dev: {
