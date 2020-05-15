@@ -4,9 +4,11 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+const cors = require('cors')
 const { resolve } = require("path");
 
 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(
   express.json({
