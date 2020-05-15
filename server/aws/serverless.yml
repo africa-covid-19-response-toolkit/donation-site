@@ -17,6 +17,7 @@ frameworkVersion: ">=1.1.0 <2.0.0"
 
 plugins:
   - serverless-offline
+  - serverless-dynamodb-local
   - serverless-s3-sync
 
 custom:
@@ -24,6 +25,14 @@ custom:
   s3-sync:
     - bucketName: ${self:custom.s3Bucket}
       localDir: ../../client/build
+  dynamodb:
+    stages:
+      - dev
+    start:
+      - port: 8000
+        inMemory: true
+        migration: true
+        dbPath: './.dynamodb'
 
 provider:
   name: aws
@@ -68,6 +77,21 @@ functions:
           path: /webhook
           method: post
           cors: true
+  userDetails:
+    handler: handlers/user-data.userData
+    events:
+      - http:
+          path: /test
+          method: get
+          cors: true
+      - http:
+          path: /test
+          method: post
+          cors: true
+      # - http:
+      #     path: /webhook
+      #     method: post
+      #     cors: true
 
 # you can add CloudFormation resource templates here
 resources:
