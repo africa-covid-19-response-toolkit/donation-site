@@ -1,4 +1,8 @@
-# package directories
+# Environment variables
+.env.development
+.env.production
+
+# Package directories
 node_modules
 jspm_packages
 
