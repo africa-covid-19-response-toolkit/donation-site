@@ -13,16 +13,24 @@
 
 service: donation-site-gateway
 
-frameworkVersion: ">=1.1.0 <2.0.0"
+frameworkVersion: '>=1.1.0 <2.0.0'
 
 plugins:
   - serverless-offline
   - serverless-s3-sync
+  - serverless-dotenv-plugin
 
 custom:
-  s3Bucket: ecrt.ethiopiatrustfund.org
+  dotenv:
+    logging: false
+    include:
+      - S3_BUCKET
+      - STRIPE_PUBLISHABLE_KEY
+      - STRIPE_SECRET_KEY
+      # - STRIPE_WEBHOOK_SECRET
+  s3Bucket: ${env:S3_BUCKET}
   s3-sync:
-    - bucketName: ${self:custom.s3Bucket}
+    - bucketName: ${env:S3_BUCKET}
       localDir: ../../client/build
 
 provider:
@@ -31,11 +39,10 @@ provider:
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   environment:
-    STRIPE_SECRET_KEY: ${ssm:/STRIPE_SECRET_KEY~true}
-    STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
-  #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
+    STRIPE_SECRET_KEY: ${env:STRIPE_PUBLISHABLE_KEY, ssm:/STRIPE_SECRET_KEY~true}
+    STRIPE_PUBLISHABLE_KEY: ${env:STRIPE_SECRET_KEY, ssm:/STRIPE_PUBLISHABLE_KEY~true}
+    #  STRIPE_SECRET_KEY: ${env:STRIPE_WEBHOOK_SECRET, self:custom.secrets.stripeSecretKey}
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
-  
 
   iamRoleStatements:
     - Effect: Allow
@@ -46,8 +53,8 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
-  
+      Resource: 'arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}'
+
 functions:
   stripe:
     handler: handlers/stripe.stripe
@@ -75,7 +82,7 @@ resources:
     WebAppS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.s3Bucket}
+        BucketName: ${env:S3_BUCKET}
         AccessControl: PublicRead
         WebsiteConfiguration:
           IndexDocument: index.html
@@ -89,25 +96,18 @@ resources:
           Statement:
             - Sid: PublicReadGetObject
               Effect: Allow
-              Principal: "*"
+              Principal: '*'
               Action:
-              - s3:GetObject
+                - s3:GetObject
               Resource:
-                Fn::Join: [
-                  "", [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "WebAppS3Bucket"
-                    },
-                    "/*"
-                  ]
-                ]
+                Fn::Join:
+                  ['', ['arn:aws:s3:::', { 'Ref': 'WebAppS3Bucket' }, '/*']]
     WebAppCloudFrontDistribution:
       Type: AWS::CloudFront::Distribution
       Properties:
         DistributionConfig:
           Origins:
-            - DomainName: ${self:custom.s3Bucket}.s3.amazonaws.com
+            - DomainName: ${env:S3_BUCKET}.s3.amazonaws.com
               ## An identifier for the origin which must be unique within the distribution
               Id: WebApp
               CustomOriginConfig:
@@ -119,8 +119,8 @@ resources:
               #   OriginAccessIdentity: origin-access-identity/cloudfront/E127EXAMPLE51Z
           Enabled: 'true'
           ## Uncomment the following section in case you are using a custom domain
-         ## Aliases:
-          # - ${self:custom.s3Bucket}
+          ## Aliases:
+          # - ${env:S3_BUCKET}
           DefaultRootObject: index.html
           ## Since the Single Page App is taking care of the routing we need to make sure ever path is served with index.html
           ## The only exception are files that actually exist e.h. app.js, reset.css
@@ -153,18 +153,16 @@ resources:
           # Logging:
           #   IncludeCookies: 'false'
           #   Bucket: mylogs.s3.amazonaws.com
-          #   Prefix: myprefix    
+          #   Prefix: myprefix
     TodosDynamoDbTable:
       Type: 'AWS::DynamoDB::Table'
-     # DeletionPolicy: Retain
+      # DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: id
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
@@ -173,4 +171,4 @@ resources:
   Outputs:
     WebAppCloudFrontDistributionOutput:
       Value:
-        'Fn::GetAtt': [ WebAppCloudFrontDistribution, DomainName ]
+        'Fn::GetAtt': [WebAppCloudFrontDistribution, DomainName]
