@@ -5,7 +5,7 @@
   "scripts": {
     "client": "cd client && yarn start",
     "server": "cd server/aws && yarn dev",
-    "postinstall": "cd server/node && yarn && cd ../../client && yarn",
+    "postinstall": "cd server/aws && yarn && cd ../../client && yarn",
     "start": "concurrently \"yarn client\" \"yarn server\""
   },
   "author": "stripe-demos",
