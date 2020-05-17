@@ -4,8 +4,8 @@
   "description": "A Stripe demo",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "export IS_OFFLINE=true && serverless offline start -s dev",
+    "start": "export IS_OFFLINE=true && serverless offline start -s dev",
+    "dev": "nodemon --exec npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -21,6 +21,7 @@
     "stripe": "^7.1.0"
   },
   "devDependencies": {
+    "nodemon": "^2.0.4",
     "serverless": "^1.67.0",
     "serverless-offline": "^6.1.2",
     "serverless-s3-sync": "^1.13.0",
