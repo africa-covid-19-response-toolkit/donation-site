@@ -6,7 +6,8 @@
   "scripts": {
     "start": "export IS_OFFLINE=true && serverless offline start -s dev",
     "dev": "nodemon --exec npm run start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "sls dynamodb install"
   },
   "engines": {
     "node": "^10.13.0"
@@ -24,7 +25,7 @@
   "devDependencies": {
     "nodemon": "^2.0.4",
     "serverless": "^1.67.0",
-    "serverless-dynamodb-local": "^0.2.39",
+    "serverless-dynamodb-local": "0.2.30",
     "serverless-offline": "^6.1.5",
     "serverless-s3-sync": "^1.13.0",
     "serverless-single-page-app-plugin": "^1.0.2"

@@ -16,8 +16,8 @@ service: donation-site-gateway
 frameworkVersion: ">=1.1.0 <2.0.0"
 
 plugins:
-  - serverless-offline
   - serverless-dynamodb-local
+  - serverless-offline
   - serverless-s3-sync
 
 custom:
@@ -29,10 +29,9 @@ custom:
     stages:
       - dev
     start:
-      - port: 8000
-        inMemory: true
-        migration: true
-        dbPath: './.dynamodb'
+      port: 8000
+      inMemory: true
+      migrate: true
 
 provider:
   name: aws
@@ -194,6 +193,19 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
+    userDataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: userDataTable
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
   Outputs:
     WebAppCloudFrontDistributionOutput:
       Value:
