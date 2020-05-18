@@ -14,6 +14,7 @@ const UUID_NAMESPACE = '7516f1bf-7a20-4768-8e91-23bbcc4ece8b';
 
 
 module.exports.handler = async (event, context) => {
+
     context.callbackWaitsForEmptyEventLoop = false;
     const { requestContext: { httpMethod }, body } = event;
     switch (httpMethod) {
@@ -32,20 +33,21 @@ const handleGet = async () => {
 
     try {
         const data = await docClient.scan({ TableName: TABLE_NAME }).promise()
-        res.body = JSON.stringify(data.Items, null, 2)
-        console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
+        res.body = JSON.stringify(data.Items)
+        console.log("GetItem succeeded:", JSON.stringify(data));
         return res
     } catch (err) {
-        res.body = JSON.stringify(err, null, 2)
-        console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-        return res
+        console.log('handleGet Err', err);
+        return {
+            body: JSON.stringify(err),
+            statusCode: 502
+        }
     }
 }
 
 
 const handlePost = async (body) => {
     const parsedBody = JSON.parse(body);
-    let res = {}
     const model = Joi.object().keys({
         currency: Joi.string().required(),
         amount: Joi.number().required(),
@@ -57,46 +59,47 @@ const handlePost = async (body) => {
     const result = model.validate(parsedBody)
 
     if (result.error) {
-        res.body = JSON.stringify({
-            error: true,
-            message: result,
-        })
-        return res
+        return {
+            body: JSON.stringify({
+                error: true,
+                message: result,
+            }),
+            statusCode: 400
+        }
     }
 
     try {
         const params = {
             TableName: TABLE_NAME,
             Item: {
+                ...parsedBody,
                 id: v5(parsedBody.email, UUID_NAMESPACE),
-                ...parsedBody
+                createdAt: new Date().toISOString()
             },
             ConditionExpression: 'attribute_not_exists(id)'
         };
 
         await docClient.put(params).promise()
-        res = {
-            body: JSON.stringify({ ...params.Item }, null, 2),
+        return {
+            body: JSON.stringify({ ...params.Item }),
             statusCode: 201
         }
-        return res
     } catch (err) {
+        console.error("Unable to add item. Error JSON:", err);
         if (err.name === 'ConditionalCheckFailedException') {
-            res = {
+            return {
                 body: JSON.stringify({
                     error: true,
                     message: 'Duplicate donor'
-                }, null, 2),
+                }),
                 statusCode: 400
             }
-            return res
         }
-        res= {
-            body: JSON.stringify(err, null, 2),
+
+        return {
+            body: JSON.stringify(err),
             statusCode: 502
         }
-        console.error("Unable to add item. Error JSON:", err);
-        return res
     }
 }
 

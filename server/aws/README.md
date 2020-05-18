@@ -24,6 +24,8 @@ Uses serverless-offline + serverless-dynamodb-local
 /dev/test
 [
     {
+        id: Joi.string(),
+        createdAt: Joi.string(),
         currency: Joi.string().required(),
         amount: Joi.string().required(),
         companyName: Joi.string().required(),
