@@ -43,6 +43,7 @@ provider:
     STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
   #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_LOCAL_URL: http://localhost:${self:custom.dynamodb.start.port}
   
 
   iamRoleStatements:
@@ -77,14 +78,14 @@ functions:
           method: post
           cors: true
   userDetails:
-    handler: handlers/user-data.userData
+    handler: handlers/donors.handler
     events:
       - http:
-          path: /test
+          path: /donors
           method: get
           cors: true
       - http:
-          path: /test
+          path: /donors
           method: post
           cors: true
       # - http:
@@ -177,36 +178,24 @@ resources:
           #   IncludeCookies: 'false'
           #   Bucket: mylogs.s3.amazonaws.com
           #   Prefix: myprefix    
-    TodosDynamoDbTable:
-      Type: 'AWS::DynamoDB::Table'
+    DonorsTable:
+      Type: AWS::DynamoDB::Table
      # DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: id
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
-    userDataTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: userDataTable
-        AttributeDefinitions:
-          - AttributeName: email
-            AttributeType: S
-        KeySchema:
-          - AttributeName: email
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
   Outputs:
     WebAppCloudFrontDistributionOutput:
       Value:
         'Fn::GetAtt': [ WebAppCloudFrontDistribution, DomainName ]
+    DonorsTableOutput:
+      Value:
+        'Fn::GetAtt': []

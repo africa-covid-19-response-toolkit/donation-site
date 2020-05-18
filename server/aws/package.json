@@ -20,7 +20,8 @@
     "express": "^4.17.1",
     "joi": "^14.3.1",
     "serverless-s3bucket-sync": "^0.1.5",
-    "stripe": "^7.1.0"
+    "stripe": "^7.1.0",
+    "uuid": "^8.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4",
