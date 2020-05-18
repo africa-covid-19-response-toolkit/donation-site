@@ -4,8 +4,9 @@
   "description": "A Stripe demo",
   "main": "index.js",
   "scripts": {
-    "start": "export IS_OFFLINE=true && serverless offline start -s dev",
-    "dev": "nodemon --exec npm run start",
+    "start": "export IS_OFFLINE=true && serverless offline start -s dev --noStart",
+    "start:dynamodb": "sls dynamodb start",
+    "dev": "concurrently \"yarn start:dynamodb\" \"nodemon --exec yarn start\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "sls dynamodb install"
   },
@@ -24,6 +25,7 @@
     "uuid": "^8.0.0"
   },
   "devDependencies": {
+    "concurrently": "^5.2.0",
     "nodemon": "^2.0.4",
     "serverless": "^1.67.0",
     "serverless-dynamodb-local": "0.2.30",
