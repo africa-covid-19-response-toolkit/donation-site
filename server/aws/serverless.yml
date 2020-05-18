@@ -42,7 +42,7 @@ provider:
     STRIPE_SECRET_KEY: ${ssm:/STRIPE_SECRET_KEY~true}
     STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
   #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE: donors-table-${opt:stage, self:provider.stage}
     DYNAMODB_LOCAL_URL: http://localhost:${self:custom.dynamodb.start.port}
   
 
@@ -99,7 +99,7 @@ resources:
     WebAppS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.s3Bucket}
+        BucketName: ${self:custom.s3Bucket}-2
         AccessControl: PublicRead
         WebsiteConfiguration:
           IndexDocument: index.html
