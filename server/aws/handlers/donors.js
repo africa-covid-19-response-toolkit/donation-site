@@ -4,30 +4,26 @@ const AWS = require('aws-sdk');
 const Joi = require('joi');
 const { v5 } = require('uuid');
 
-const { handleResponse, handleError, getPublicKey, createPaymentIntent, receiveWebHook } = require('../helpers');
-
-const dynamoDBParams = {region: process.env.AWS_REGION}
+const dynamoDBParams = { region: process.env.AWS_REGION };
 if (process.env.IS_OFFLINE) {
-    dynamoDBParams.endpoint = process.env.DYNAMODB_LOCAL_URL
+    dynamoDBParams.endpoint = process.env.DYNAMODB_LOCAL_URL;
 }
-const docClient = new AWS.DynamoDB.DocumentClient(dynamoDBParams)
-const TABLE_NAME = process.env.DYNAMODB_TABLE
+const docClient = new AWS.DynamoDB.DocumentClient(dynamoDBParams);
+const TABLE_NAME = process.env.DYNAMODB_TABLE;
+const UUID_NAMESPACE = '7516f1bf-7a20-4768-8e91-23bbcc4ece8b';
 
 
-module.exports.handler = async (event, context, callback) => {
+module.exports.handler = async (event, context) => {
+    context.callbackWaitsForEmptyEventLoop = false;
     const { requestContext: { httpMethod }, body } = event;
-    let res
     switch (httpMethod) {
         case 'GET':
-            res = await handleGet(body)
-            callback(null, res)
+            return handleGet(body)
         case 'POST':
-            res = await handlePost(body)
-            callback(null, res)
+            return handlePost(body)
         default:
-            callback(null, res)
+            return { body: null, statusCode: 501 }
     }
-
 }
 
 
@@ -62,6 +58,7 @@ const handlePost = async (body) => {
 
     if (result.error) {
         res.body = JSON.stringify({
+            error: true,
             message: result,
         })
         return res
@@ -71,20 +68,34 @@ const handlePost = async (body) => {
         const params = {
             TableName: TABLE_NAME,
             Item: {
-                id: v5(parsedBody.email, '7516f1bf-7a20-4768-8e91-23bbcc4ece8b'),
+                id: v5(parsedBody.email, UUID_NAMESPACE),
                 ...parsedBody
-            }
+            },
+            ConditionExpression: 'attribute_not_exists(id)'
         };
 
-        const data = await docClient.put(params).promise()
-        res.body = JSON.stringify({
-            ...params.Item
-        }, null, 2)
-        console.log("Added item:", JSON.stringify(data, null, 2));
+        await docClient.put(params).promise()
+        res = {
+            body: JSON.stringify({ ...params.Item }, null, 2),
+            statusCode: 201
+        }
         return res
     } catch (err) {
-        res.body = JSON.stringify(err, null, 2)
-        console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+        if (err.name === 'ConditionalCheckFailedException') {
+            res = {
+                body: JSON.stringify({
+                    error: true,
+                    message: 'Duplicate donor'
+                }, null, 2),
+                statusCode: 400
+            }
+            return res
+        }
+        res= {
+            body: JSON.stringify(err, null, 2),
+            statusCode: 502
+        }
+        console.error("Unable to add item. Error JSON:", err);
         return res
     }
 }

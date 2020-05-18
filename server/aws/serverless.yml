@@ -77,7 +77,7 @@ functions:
           path: /webhook
           method: post
           cors: true
-  userDetails:
+  donorData:
     handler: handlers/donors.handler
     events:
       - http:
