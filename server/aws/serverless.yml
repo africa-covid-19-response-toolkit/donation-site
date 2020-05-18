@@ -42,7 +42,7 @@ provider:
     STRIPE_SECRET_KEY: ${ssm:/STRIPE_SECRET_KEY~true}
     STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
   #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
-    DYNAMODB_TABLE: donors-table-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE: donors-${opt:stage, self:provider.stage}
     DYNAMODB_LOCAL_URL: http://localhost:${self:custom.dynamodb.start.port}
   
 
@@ -185,9 +185,13 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
