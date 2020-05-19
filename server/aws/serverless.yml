@@ -16,6 +16,7 @@ service: donation-site-gateway
 frameworkVersion: ">=1.1.0 <2.0.0"
 
 plugins:
+  - serverless-dynamodb-local
   - serverless-offline
   - serverless-s3-sync
 
@@ -24,6 +25,13 @@ custom:
   s3-sync:
     - bucketName: ${self:custom.s3Bucket}
       localDir: ../../client/build
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
 
 provider:
   name: aws
@@ -34,7 +42,8 @@ provider:
     STRIPE_SECRET_KEY: ${ssm:/STRIPE_SECRET_KEY~true}
     STRIPE_PUBLISHABLE_KEY: ${ssm:/STRIPE_PUBLISHABLE_KEY~true}
   #  STRIPE_SECRET_KEY: ${self:custom.secrets.stripeSecretKey}
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE: donors-${opt:stage, self:provider.stage}
+    DYNAMODB_LOCAL_URL: http://localhost:${self:custom.dynamodb.start.port}
   
 
   iamRoleStatements:
@@ -68,6 +77,21 @@ functions:
           path: /webhook
           method: post
           cors: true
+  donorData:
+    handler: handlers/donors.handler
+    events:
+      - http:
+          path: /donors
+          method: get
+          cors: true
+      - http:
+          path: /donors
+          method: post
+          cors: true
+      # - http:
+      #     path: /webhook
+      #     method: post
+      #     cors: true
 
 # you can add CloudFormation resource templates here
 resources:
@@ -75,7 +99,7 @@ resources:
     WebAppS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.s3Bucket}
+        BucketName: ${self:custom.s3Bucket}-2
         AccessControl: PublicRead
         WebsiteConfiguration:
           IndexDocument: index.html
@@ -154,18 +178,20 @@ resources:
           #   IncludeCookies: 'false'
           #   Bucket: mylogs.s3.amazonaws.com
           #   Prefix: myprefix    
-    TodosDynamoDbTable:
-      Type: 'AWS::DynamoDB::Table'
+    DonorsTable:
+      Type: AWS::DynamoDB::Table
      # DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: id
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: id
             KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1

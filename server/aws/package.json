@@ -4,9 +4,11 @@
   "description": "A Stripe demo",
   "main": "index.js",
   "scripts": {
-    "start": "export IS_OFFLINE=true && serverless offline start -s dev",
-    "dev": "nodemon --exec npm run start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "export IS_OFFLINE=true && serverless offline start -s dev --noStart",
+    "start:dynamodb": "sls dynamodb start",
+    "dev": "concurrently \"yarn start:dynamodb\" \"nodemon --exec yarn start\"",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "sls dynamodb install"
   },
   "engines": {
     "node": "^10.13.0"
@@ -17,13 +19,17 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.0.0",
     "express": "^4.17.1",
+    "joi": "^14.3.1",
     "serverless-s3bucket-sync": "^0.1.5",
-    "stripe": "^7.1.0"
+    "stripe": "^7.1.0",
+    "uuid": "^8.0.0"
   },
   "devDependencies": {
+    "concurrently": "^5.2.0",
     "nodemon": "^2.0.4",
     "serverless": "^1.67.0",
-    "serverless-offline": "^6.1.2",
+    "serverless-dynamodb-local": "0.2.30",
+    "serverless-offline": "^6.1.5",
     "serverless-s3-sync": "^1.13.0",
     "serverless-single-page-app-plugin": "^1.0.2"
   }
