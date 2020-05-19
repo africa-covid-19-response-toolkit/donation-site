@@ -8,7 +8,7 @@ Uses serverless-offline + serverless-dynamodb-local
 # User data model
 ## To add data (POST)
 ```
-/dev/test
+/dev/donors
 {
     currency: Joi.string().required(),
     amount: Joi.string().required(),
@@ -21,7 +21,7 @@ Uses serverless-offline + serverless-dynamodb-local
 
 ## To retrieve data (GET)
 ```
-/dev/test
+/dev/donors
 [
     {
         id: Joi.string(),
