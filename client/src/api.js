@@ -2,6 +2,32 @@ import config from "./constants/config";
 
 const { apiUrl } = config;
 
+const saveDonorInformation = options => {
+  return window
+    .fetch(`${apiUrl}/donors`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(options)
+    })
+    .then(res => {
+      if (res.status === 200 || res.status === 201) {
+        return res.json();
+      } else {
+        return null;
+      }
+    })
+    .then(data => {
+      if (!data || data.error) {
+        console.log("API error:", { data });
+        throw new Error("Donor API Error");
+      } else {
+        return data.client_secret;
+      }
+    });
+}
+
 const createPaymentIntent = options => {
   return window
     .fetch(`${apiUrl}/create-payment-intent`, {
@@ -24,31 +50,6 @@ const createPaymentIntent = options => {
         throw new Error("PaymentIntent API Error");
       } else {
         return data.client_secret;
-      }
-    });
-};
-
-const getProductDetails = options => {
-  return window
-    .fetch(`${apiUrl}//product-details`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-    .then(res => {
-      if (res.status === 200) {
-        return res.json();
-      } else {
-        return null;
-      }
-    })
-    .then(data => {
-      if (!data || data.error) {
-        console.log("API error:", { data });
-        throw Error("API Error");
-      } else {
-        return data;
       }
     });
 };
@@ -79,9 +80,9 @@ const getPublicStripeKey = options => {
 };
 
 const api = {
+  saveDonorInformation,
   createPaymentIntent,
-  getPublicStripeKey: getPublicStripeKey,
-  getProductDetails: getProductDetails
+  getPublicStripeKey: getPublicStripeKey
 };
 
 export default api;

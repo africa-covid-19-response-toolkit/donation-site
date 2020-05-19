@@ -55,6 +55,7 @@ const handlePost = async (body) => {
         email: Joi.string().email().required(),
         name: Joi.string(),
         comment: Joi.string(),
+        anonymousDonation: Joi.boolean()
     })
     const result = model.validate(parsedBody)
 
