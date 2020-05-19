@@ -7,7 +7,7 @@ const CheckoutFormInitialState = {
   currency: DEFAULT_CURRENCY,
   donationAmount: DEFAULT_AMOUNT,
   customAmount: 0,
-  anonymous: "",
+  anonymousDonation: false,
   comment: "",
 };
 export default CheckoutFormInitialState;

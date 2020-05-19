@@ -41,15 +41,11 @@ const CheckoutForm = ({ langCode, lang }) => {
 
   useEffect(() => {
     if (elements) {
-      console.log('set card change');
       const cardElement = elements.getElement(CardElement);
       cardElement.on("change", function (event) {
-        console.log('card element', cardIsValid, event);
         if (event.complete) {
-          console.log('complete')
           setCardIsValid(true);
         } else {
-          console.log('incomplete')
           setCardIsValid(false);
         }
       });
@@ -92,6 +88,22 @@ const CheckoutForm = ({ langCode, lang }) => {
       },
     });
 
+    const amount =
+      formValues.donationAmount === "Other"
+        ? formValues.customAmount
+        : formValues.donationAmount;
+
+    const donorInformation = {
+      currency: formValues.currency,
+      amount: amount,
+      name: formValues.name,
+      email: formValues.email,
+      companyName: formValues.companyName,
+      comment: formValues.comment,
+      anonymousDonation: formValues.anonymousDonation
+    }
+    api.saveDonorInformation(donorInformation);
+
     if (payload.error) {
       setError(`Payment failed: ${payload.error.message}`);
       setProcessing(false);
@@ -112,7 +124,6 @@ const CheckoutForm = ({ langCode, lang }) => {
     // let cardIsValid = true;
 
     if (!isEmpty(captchaText) && !isCaptchaExpired) {
-      console.log("valudate", cardIsValid);
       fields.forEach((f) => {
         if (f.onValidate && f.active) {
           isValid = isValid && f.onValidate(formValues[f.property]);
