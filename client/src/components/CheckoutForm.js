@@ -71,7 +71,7 @@ const CheckoutForm = ({ langCode, lang }) => {
       .catch((err) => {
         setError(err.message);
       });
-  }, [formValues]);
+  }, [formValues.currency, formValues.donationAmount, formValues.customAmount]);
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
@@ -86,29 +86,30 @@ const CheckoutForm = ({ langCode, lang }) => {
           name: formValues.name,
         },
       },
-    });
-
-    const amount =
-      formValues.donationAmount === "Other"
-        ? formValues.customAmount
-        : formValues.donationAmount;
-
-    const donorInformation = {
-      currency: formValues.currency,
-      amount: amount,
-      name: formValues.name,
-      email: formValues.email,
-      companyName: formValues.companyName,
-      comment: formValues.comment,
-      anonymousDonation: formValues.anonymousDonation
-    }
-    api.saveDonorInformation(donorInformation);
+    });       
 
     if (payload.error) {
       setError(`Payment failed: ${payload.error.message}`);
       setProcessing(false);
       // console.log("[error]", payload.error);
     } else {
+      const amount =
+        formValues.donationAmount === "Other"
+          ? formValues.customAmount
+          : formValues.donationAmount;
+
+      const donorInformation = {
+        currency: formValues.currency,
+        amount: amount,
+        name: formValues.name,
+        email: formValues.email,
+        companyName: formValues.companyName,
+        comment: formValues.comment,
+        anonymousDonation: formValues.anonymousDonation
+      } 
+
+      await api.saveDonorInformation(donorInformation);
+
       setError(null);
       setSucceeded(true);
       setProcessing(false);
