@@ -1,23 +1,24 @@
-import React from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
-import CheckoutForm from "./components/CheckoutForm";
-import languageStore from "../src/helpers/lang/language-store";
+import React from 'react'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements } from '@stripe/react-stripe-js'
+import CheckoutForm from './components/CheckoutForm'
+import languageStore from '../src/helpers/lang/language-store'
 
-import { Box, Container, Grid } from "@material-ui/core";
-import api from "./api";
+import { Box, Container, Grid } from '@material-ui/core'
+import { auth } from './api/stripe'
 
 // import "./App.css";
+import 'assets/scss/material-kit-react.scss?v=1.8.0'
 
-const stripePromise = api.getPublicStripeKey().then((key) => loadStripe(key));
+const stripePromise = auth.getPublicStripeKey().then((key) => loadStripe(key))
 
 export default function App() {
-  const langCode = languageStore.langCode;
-  const lang = languageStore.lang;
+  const langCode = languageStore.langCode
+  const lang = languageStore.lang
   return (
-    <Container maxWidth={"md"}>
+    <Container maxWidth={'md'}>
       <Box my={4}>
-        <header className="sr-header" style={{ display: "flex" }}>
+        <header className="sr-header" style={{ display: 'flex' }}>
           <div className="sr-header__logo" />
           <a href="https://www.ethiopiatrustfund.org/">Home</a>
         </header>
@@ -27,11 +28,10 @@ export default function App() {
           </Elements>
         </Box>
         <Box>
-          This is a donation site for{" "}
+          This is a donation site for{' '}
           <a
             href="https://ethiocovid19rt.com"
             target="_blank"
-            without
             rel="noopener noreferrer"
           >
             the Ethiopia COVID-19 Response Taskforce
@@ -39,5 +39,5 @@ export default function App() {
         </Box>
       </Box>
     </Container>
-  );
+  )
 }
