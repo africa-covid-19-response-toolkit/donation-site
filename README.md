@@ -32,19 +32,11 @@ STRIPE_PUBLISHABLE_KEY=<replace-with-your-publishable-key>
 STRIPE_SECRET_KEY=<replace-with-your-secret-key>
 ```
 
-### Running both API and React client together
-
-1. Go to `/donation-site`
-2. Run `yarn`
-3. Run `yarn start` and your default browser should now open with the front-end being served from `http://localhost:3001/` and the API will be served from `http://localhost:3000/`.
-
-## OR run manually
-
 ### Running the API server
 
 1. Go to `/server/aws`
 2. Run `yarn`
-3. Run `yarn server` and the API will be served from `http://localhost:3000/`.
+3. Run `yarn start` and the API will be served from `http://localhost:3000/`.
 
 ### Running the React client
 
