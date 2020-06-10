@@ -4,8 +4,8 @@
   "description": "A Stripe demo",
   "main": "index.js",
   "scripts": {
-    "start": "export IS_OFFLINE=true && serverless offline start -s dev",
-    "dev": "nodemon --exec npm run start",
+    "start": "export IS_OFFLINE=true && nodemon --exec serverless offline start",
+    "dev": "nodemon --exec yarn start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {

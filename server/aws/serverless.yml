@@ -32,6 +32,9 @@ custom:
   s3-sync:
     - bucketName: ${env:S3_BUCKET}
       localDir: ../../client/build
+  serverless-offline:
+    # httpsProtocol: 'dev-certs'
+    httpPort: 1337
 
 provider:
   name: aws
